@@ -2,6 +2,8 @@
 
 namespace Survos\JsTwigBundle;
 
+use Symfony\Component\DomCrawler\Crawler;
+
 trait TwigBlocksTrait
 {
 

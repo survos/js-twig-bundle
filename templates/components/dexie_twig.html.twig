@@ -1,0 +1,23 @@
+{% set _sc = '@survos/js-twig-bundle/dexie' %}
+
+<div {{ attributes }}
+        {{ stimulus_controller(_sc, {
+            refreshEvent: this.refreshEvent,
+            twigTemplate: this.twigTemplate,
+            filter: this.filter|json_encode,
+            dbName: this.dbName,
+            schema: this.schema,
+            version: this.version,
+            store: this.store
+        },
+            controllerOutlets = { 'app': '.app' }
+        ) }}>
+
+    <div {{ stimulus_target(_sc, 'content') }}>
+        The listing will be here, rendered from the DexieTwig<i>Component</i>
+    </div>
+
+
+    <!-- component html -->
+
+</div>

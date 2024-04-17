@@ -1,2 +1,5 @@
 /vendor/
 composer.lock
+
+assets/node_modules
+assets/yarn.lock

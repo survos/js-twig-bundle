@@ -3,8 +3,7 @@
     "type": "symfony-bundle",
     "description": "wrap the jstwig library in a Symfony UX component",
     "keywords": [
-        "symfony-ux",
-        "symfony6"
+        "symfony-ux"
     ],
     "license": "MIT",
     "require": {
@@ -13,7 +12,9 @@
         "symfony/dependency-injection": "^6.4 || ^7.0",
         "symfony/http-kernel": "^6.4 || ^7.0",
         "twig/twig": "^3.4",
-        "symfony/ux-twig-component": "^2.14"
+        "symfony/ux-twig-component": "^2.14",
+        "survos/core-bundle": "^1.5",
+        "symfony/dom-crawler": "^7.0"
     },
     "autoload": {
         "psr-4": {

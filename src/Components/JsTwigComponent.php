@@ -1,6 +1,6 @@
 <?php
 
-//namespace Survos\ApiGrid\Components;
+// this was from ApiGrid, may no longer be relevant if dexie is optional or data can be passed in (via JSON?)
 namespace Survos\JsTwigBundle\Components;
 
 use Psr\Log\LoggerInterface;
@@ -14,7 +14,6 @@ class JsTwigComponent // implements TwigBlocksInterface
     use TwigBlocksTrait;
 
     public string $caller;
-    public string $apiUrl;
     public string $id; // for parsing out the twig blocks
     public function __construct(
         private Environment $twig,
