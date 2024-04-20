@@ -14,11 +14,11 @@
         }
       },
       "jstwig": {
-        "main": "src/controllers/jstwig.js",
-        "webpackMode": "eager",
-        "fetch": "lazy",
-        "enabled": true,
-        "autoimport": {
+          "main": "src/controllers/js_twig_controller.js",
+          "webpackMode": "eager",
+          "fetch": "lazy",
+          "enabled": true,
+          "autoimport": {
         }
       }
 

@@ -13,6 +13,7 @@ final class DexieTwigComponent extends AsTwigComponent
     use TwigBlocksTrait;
     public string $dbName; // required
     public string $store; // required
+    public ?iterable $globals=null;
     public ?string $refreshEvent=null;
 
     public function __construct(
@@ -61,6 +62,28 @@ final class DexieTwigComponent extends AsTwigComponent
         }
         return $schema;
     }
+
+    public function getConfig(): array
+    {
+        return $this->config;
+    }
+
+    /**
+     * The API Platform or other urls to pre-populate the database
+     *
+     * @return array
+     */
+    public function getTableUrls(): array
+    {
+        $tableUrls = [];
+        foreach ($this->config['stores'] as $store) {
+            if ($store['url']??false) {
+                $tableUrls[$store['name']] = $store['url'];
+            }
+        }
+        return $tableUrls;
+    }
+
 
     public function getDbName()
     {

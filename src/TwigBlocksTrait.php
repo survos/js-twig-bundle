@@ -75,7 +75,7 @@ trait TwigBlocksTrait
             $crawler->addHtmlContent($componentHtml);
             $allTwigBlocks = [];
             // use an ID to select a specific template, regardless of where it is in the page.
-            if ($this->getId()) {
+            if ($id = $this->getId()) {
                 $selector = '#' . $this->getId();
                 $text = $crawler->filter($selector)->html();
                 $text =  urldecode($text);
@@ -84,15 +84,29 @@ trait TwigBlocksTrait
             }
 
             // <twig:block only, not component
-            if ($crawler->filterXPath('//block')->count() > 0) {
+            $blocks = $crawler->filterXPath('//block');
+            if ($blocks->count() > 0) {
 
-                $allTwigBlocks = $crawler->filterXPath('//block')->each(function (Crawler $node, $i) {
+                $allTwigBlocks = $blocks->each(function (Crawler $node, $i) use ($componentHtml) {
 //                    https://stackoverflow.com/questions/15133541/get-raw-html-code-of-element-with-symfony-domcrawler
                     $blockName = $node->attr('name');
-                    $html = rawurldecode($node->html());
+                    $id = $node->attr('id', null);
+                    if ($id) {
+                        $preg = sprintf('id="%s">(.*?)<!-- *%s', $id, $id);
+                        if (preg_match("/$preg/sm", $componentHtml, $mm)) {
+                            $html = $mm[1];
+                        } else {
+                            throw new \Exception("Invalid closing for : $id");
+                        }
+                    } else {
+                        $html = $node->html();
+                    }
+
+                    $html = rawurldecode($html);
+//                    file_put_contents('./$.html', $html);
                     // hack for twig > and <
                     $html = str_replace(['&lt;', '&gt;'], ['<', '>'], $html);
-//                    dd($blockName, $html);
+//                    dd(false, $node->text());
                     return [$blockName => $html];
                 });
             }
