@@ -7,13 +7,14 @@ use Survos\JsTwigBundle\TwigBlocksTrait;
 use Symfony\UX\TwigComponent\Attribute\AsTwigComponent;
 use Twig\Environment;
 
+
 #[AsTwigComponent(name: 'dexie', template: '@SurvosJsTwig/components/dexie_twig.html.twig')]
 final class DexieTwigComponent extends AsTwigComponent
 {
     use TwigBlocksTrait;
-    public string $dbName; // required
     public string $store; // required
     public ?iterable $globals=null;
+    public null|string|int $key=null;
     public ?string $refreshEvent=null;
 
     public function __construct(
@@ -40,13 +41,21 @@ final class DexieTwigComponent extends AsTwigComponent
     {
         return $this->store;
     }
-    public $filter = null;
+    public null|object|array $filter = null;
     public array $order = [];
 
 
     public function getTwigTemplate(): string
     {
+        assert(array_key_exists('twig_template', $this->getTwigBlocks()), "Missing 'twig_template' in " .
+          $this->getTwigSource()
+        );
         return $this->getTwigBlocks()['twig_template'];
+    }
+
+    public function getTwigTemplates()
+    {
+        return $this->getTwigBlocks();
     }
 
     public function getSchema(): array

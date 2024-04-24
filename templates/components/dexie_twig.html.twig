@@ -1,19 +1,22 @@
 {% set _sc = '@survos/js-twig-bundle/dexie' %}
 
 {% set tableUrls = this.tableUrls|length ? this.tableUrls : {} %}
-app outlet should be visible
+
 <div {{ attributes }}
         {{ stimulus_controller(_sc, {
             refreshEvent: this.refreshEvent,
             twigTemplate: this.twigTemplate,
+            twigTemplates: this.twigTemplates,
             filter: this.filter|json_encode,
+            key: this.key,
             config: this.config,
             dbName: this.dbName,
             globals: this.globals,
             version: this.version,
-            store: this.store
+            store: this.store,
+            caller: this.caller,
         },
-            controllerOutlets = { 'app': '#app_body' }
+            controllerOutlets = { 'app': '#app' }
         ) }}>
     <div {{ stimulus_target(_sc, 'content') }}>
         The listing will be here, rendered from the DexieTwig<i>Component</i>

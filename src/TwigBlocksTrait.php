@@ -10,11 +10,10 @@ trait TwigBlocksTrait
     public string $caller;
     // must inject twig!
 
-    public function getTwigBlocks(?string $id=null): array
+    public function getTwigSource()
     {
-        $customColumnTemplates = [];
-        $allTwigBlocks = [];
-//        dd($this->twig->getLoader()->cache, $id, $this->caller);
+        $source = null;
+        assert($this->caller, "Missing caller!");
         if ($this->caller) {
             //            $template = $this->twig->resolveTemplate($this->caller);
             $sourceContext = $this->twig->getLoader()->getSourceContext($this->caller);
@@ -30,47 +29,28 @@ trait TwigBlocksTrait
             // get rid of comments
             $source = file_get_contents($path);
             $source = preg_replace('/{#.*?#}/', '', $source);
+        }
+        return $source;
 
-            // first, get the component twig
+    }
 
-//            if (0)
-//            {
-//
-            /*                if (preg_match('|<twig:api_grid.*?>(.*?)</twig:api_grid>|ms', $source, $mm)) {*/
-//                    $twigBlocks = $mm[1];
-//                    $componentHtml = $mm[0];
-//                    $componentHtml = <<<END
-//    <twig:Alert>
-//        <twig:block name="footer">
-//            <button class="btn btn-primary">Claim your prize</button>
-//        </twig:block>
-//    </twig:Alert>
-//END;
-//                    $crawler = new Crawler($componentHtml);
-//                    $crawler->registerNamespace('twig','fake');
-//                    foreach (['twig:block', 'alert', 'Alter', 'twig|alert', 'twig|block', 'twig', 'block'] as $hack) {
-////                        $crawler->filterXPath($hack)->each(fn(Crawler $node) => dd($node, $node->nodeName(), $source));
-//                    }
-//
-////                    dd($componentHtml);
-////                    $componentHtml = "<html>$componentHtml</html>";
-//
-//                } else {
-////                    dd($source);
-//                    $twigBlocks = $source;
-//                }
-//
+    public function getTwigBlocks(?string $id=null): array
+    {
+        $customColumnTemplates = [];
+        $allTwigBlocks = [];
+        $source = $this->getTwigSource();
+        if ($source)
+        {
+            // this blows up with nested blocks.  Also, issue with {% block title %}
+//            if (preg_match('|<twig:block (.*?)>(.*?)</twig:block>|ms', $source, $mm)) {
+//                dd($mm);
+//                $twigBlocks = $mm[1];
+//                dd($twigBlocks);
+//            } else {
+//                $twigBlocks = $source;
 //            }
 
-            // this blows up with nested blocks.  Also, issue with {% block title %}
-            if (preg_match('/component.*?%}(.*?) endcomponent/ms', $source, $mm)) {
-                $twigBlocks = $mm[1];
-            } else {
-                $twigBlocks = $source;
-            }
-
             $componentHtml = str_replace(['twig:', 'xmlns:twig="http://example.com/twig"'], '', $source);
-
             $crawler = new Crawler();
             $crawler->addHtmlContent($componentHtml);
             $allTwigBlocks = [];
@@ -111,13 +91,12 @@ trait TwigBlocksTrait
                 });
             }
 
-
-            if (preg_match_all('/{% block (.*?) %}(.*?){% endblock/ms', $twigBlocks, $mm, PREG_SET_ORDER)) {
-                foreach ($mm as $m) {
-                    [$all, $columnName, $twigCode] = $m;
-                    $customColumnTemplates[$columnName] = trim($twigCode);
-                }
-            }
+//            if (preg_match_all('/{% block (.*?) %}(.*?){% endblock/ms', $twigBlocks, $mm, PREG_SET_ORDER)) {
+//                foreach ($mm as $m) {
+//                    [$all, $columnName, $twigCode] = $m;
+//                    $customColumnTemplates[$columnName] = trim($twigCode);
+//                }
+//            }
         }
         foreach ($allTwigBlocks as $allTwigBlock) {
             foreach ($allTwigBlock as $key => $value) {

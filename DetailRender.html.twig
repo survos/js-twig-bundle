@@ -1,9 +1,2 @@
-<div{{ attributes }} {{ stimulus_controller('render', {
-    twigTemplates: this.blocks
-},
-    controllerOutlets = { 'render': '.app' }) }}>
+<h1>{{ _self }}</h1>
 
-    <div {{ stimulus_target('render', 'content') }}>
-        content here.
-    </div>
-</div>
