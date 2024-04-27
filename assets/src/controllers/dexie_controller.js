@@ -81,16 +81,18 @@ export default class extends Controller {
 
     initialize() {
         super.initialize();
-
+        console.error('initializing ' + this.dbNameValue);
         const db = new Dexie(this.dbNameValue);
         let schema = this.convertArrayToObject(this.configValue.stores);
         db.version(this.versionValue).stores(schema);
+        console.error('opening db...');
         db.open().then(db => {
             console.warn('db is now open');
             this.db = db;
-            this.appOutlets.forEach(app => app.setDb(db));
             this.populateEmptyTables(this.db, this.configValue.stores);
             this.contentConnected();
+            this.appOutlets.forEach(app => app.setDb(db));
+            // this.contentConnected();
         });
         // db.delete();
         // create the schema from the stores
@@ -123,12 +125,10 @@ export default class extends Controller {
     }
 
     async populateEmptyTables(db, stores) {
-        console.error('populateEmptyTables')
         stores.forEach((store) => {
             let t = db.table(store.name);
             t.count(async c => {
                 if (c > 0) {
-                    console.error(store.name + ' has ' + c);
                     return;
                 }
                 const data = await loadData(store.url);
@@ -173,7 +173,7 @@ export default class extends Controller {
         // return;
         if (this.hasAppOutlet) {
             // this.appOutlet.setTitle('hello???');
-            console.error(this.appOutlet.getFilter());
+            // console.error(this.appOutlet.getFilter());
             // this.filter = this.appOutlet.getFilter();
         } else {
             // let appOutlet = document.getElementById('app_body').getAttribute('id');
@@ -185,7 +185,7 @@ export default class extends Controller {
         if (this.filter) {
             if (this.appOutlet.getFilter()) {
                 this.filter = {...this.filter, ...this.appOutlet.getFilter(this.refreshEventValue)};
-                console.error(this.filter);
+                // console.error(this.filter);
             }
         } else {
             this.filter = this.appOutlet.getFilter(this.refreshEventValue);
