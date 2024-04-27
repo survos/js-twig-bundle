@@ -8,6 +8,15 @@ import {Controller} from '@hotwired/stimulus';
 // import db from '../db.js';
 import Twig from 'twig';
 import Dexie from 'dexie';
+import {stimulus_controller, stimulus_action, stimulus_target} from 'stimulus-attributes';
+
+Twig.extend(function (Twig) {
+    Twig._function.extend('stimulus_controller', (controllerName, controllerValues = {}, controllerClasses = {}, controllerOutlets = {} = {}) =>
+        stimulus_controller(controllerName, controllerValues, controllerClasses, controllerOutlets)
+    );
+    Twig._function.extend('stimulus_target', (controllerName, r = null) => stimulus_target(controllerName, r));
+    Twig._function.extend('stimulus_action', (controllerName, r, n = null, a = {}) => stimulus_action(controllerName, r, n, a));
+});
 
 /* stimulusFetch: 'lazy' */
 export default class extends Controller {
@@ -63,7 +72,7 @@ export default class extends Controller {
         }
     }
 
-    convertArrayToObject (array, key) {
+    convertArrayToObject(array, key) {
         return array.reduce((acc, curr) => {
             acc[curr.name] = curr.schema;
             return acc;
@@ -82,7 +91,7 @@ export default class extends Controller {
             this.appOutlets.forEach(app => app.setDb(db));
             this.populateEmptyTables(this.db, this.configValue.stores);
             this.contentConnected();
-        } );
+        });
         // db.delete();
         // create the schema from the stores
         // https://dev.to/afewminutesofcode/how-to-convert-an-array-into-an-object-in-javascript-25a4
@@ -113,12 +122,13 @@ export default class extends Controller {
         // console.error('page data', this.appOutlet.getProjectId);
     }
 
-    async populateEmptyTables(db, stores)
-    {
-        stores.forEach( (store) => {
+    async populateEmptyTables(db, stores) {
+        console.error('populateEmptyTables')
+        stores.forEach((store) => {
             let t = db.table(store.name);
             t.count(async c => {
                 if (c > 0) {
+                    console.error(store.name + ' has ' + c);
                     return;
                 }
                 const data = await loadData(store.url);
@@ -174,7 +184,7 @@ export default class extends Controller {
 
         if (this.filter) {
             if (this.appOutlet.getFilter()) {
-                this.filter = { ...this.filter, ...this.appOutlet.getFilter(this.refreshEventValue) };
+                this.filter = {...this.filter, ...this.appOutlet.getFilter(this.refreshEventValue)};
                 console.error(this.filter);
             }
         } else {
@@ -197,9 +207,9 @@ export default class extends Controller {
                     }
 
                 })
-                .then( ({content, title}) => {
+                .then(({content, title}) => {
                     this.contentTarget.innerHTML = content
-                  console.log(title);
+                    console.log(title);
                     if (this.hasAppOutlet) {
                         console.error(title);
                         this.appOutlet.setTitle(title);
