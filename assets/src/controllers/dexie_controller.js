@@ -74,6 +74,7 @@ export default class extends Controller {
         // there is only one app_controller, so this.db can be share.
         // app should be in the dom, not sure why this.appOutlet not immediately available when dexie connects.
 
+        console.assert(this.hasAppOutlet, "no appOutlet!");
         this.openDatabase();
     }
 
