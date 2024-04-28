@@ -45,6 +45,7 @@ export default class extends Controller {
     static outlets = ['app']; // could pass this in, too.
 
     connect() {
+        console.assert(this.dbNameValue, "missing dbName");
         // this.appOutlet.setTitle('test setTitle from appOutlet');
         // this.populateEmptyTables(db, this.configValue['stores']);
 
@@ -74,8 +75,6 @@ export default class extends Controller {
         // there is only one app_controller, so this.db can be share.
         // app should be in the dom, not sure why this.appOutlet not immediately available when dexie connects.
 
-        console.assert(this.hasAppOutlet, "no appOutlet!");
-        this.openDatabase();
     }
 
     convertArrayToObject(array, key) {
@@ -94,14 +93,15 @@ export default class extends Controller {
     async openDatabase()
     {
         // this opens the database for every dexie connection!
+        console.assert(this.dbNameValue, "Missing dbName in dexie_controller");
         const db = new Dexie(this.dbNameValue);
         let schema = this.convertArrayToObject(this.configValue.stores);
         db.version(this.versionValue).stores(schema);
         console.info('opening db...');
 
         return db.open().then( async  db => {
-            console.info('db is now open');
-            this.db = db;
+            console.info('db is now open? Is it a promise');
+            this.db = await db;
             await this.populateEmptyTables(this.db, this.configValue.stores);
             // there should only be one app, but sometimes it appears to be zero.
             await this.appOutlets.forEach(app => app.setDb(db));
@@ -115,6 +115,14 @@ export default class extends Controller {
 
     appOutletConnected(app, body) {
         console.log(`${this.callerValue}: ${app.identifier}_controller is now connected to ` + this.identifier + '_controller');
+
+        console.assert(this.hasAppOutlet, "no appOutlet!");
+        this.db = this.appOutlet.getDb();
+        if (!this.db) {
+            this.db = this.openDatabase();
+            this.db = this.appOutlet.setDb(this.db);
+        }
+
         this.filter = this.appOutlet.getFilter(); // the global filter, like projectId
 
         // console.warn(this.hasAppOutlet, this.appOutlet.getCurrentProjectId());
@@ -129,10 +137,12 @@ export default class extends Controller {
         // console.error('page data', this.appOutlet.getProjectId);
     }
 
+
+
     async populateEmptyTables(db, stores) {
         stores.forEach(async (store) => {
             console.warn(store);
-            let t = db.table(store.name);
+            let t = this.db.table(store.name);
             t.count(async c => {
                 if (c > 0) {
                     console.warn('%s already has %d', t.name, c);
@@ -163,9 +173,12 @@ export default class extends Controller {
         // this.outlets.forEach( (outlet) => console.warn(outlet));
         // if this is fired before the database is open, return, it'll be called later
         if (!this.db) {
-            console.error('db is not connected');
+            console.error('db is not connected, it should be loaded in appOutletConnected.');
             return;
         }
+
+        console.error(this.db);
+        // https://dexie.org/docs/Dexie/Dexie.table()
         let table = this.db.table(this.storeValue);
 
         if (this.hasAppOutlet) {
