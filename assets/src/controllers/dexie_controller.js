@@ -45,7 +45,7 @@ export default class extends Controller {
     static outlets = ['app']; // could pass this in, too.
 
     connect() {
-   
+
         console.assert(this.dbNameValue, "missing dbName");
         // this.appOutlet.setTitle('test setTitle from appOutlet');
         // this.populateEmptyTables(db, this.configValue['stores']);
@@ -123,18 +123,18 @@ export default class extends Controller {
         console.info('opening db...');
 
         await db.open();
-        
+
         console.info('db is now open? Is it a promise');
         this.db = db;
         window.db = db;
         // populate the tables after the db is open
         await this.populateEmptyTables(this.db, this.configValue.stores);
-      
+
         // there should only be one app, but sometimes it appears to be zero.
         // this.appOutlet.setDb(this.db);
         this.appOutlet.setDb(window.db);
         this.contentConnected();
-        
+
         console.info('at this point, the tables should be populated and db should be open');
         return this.db;
 
@@ -191,6 +191,7 @@ export default class extends Controller {
                     .then((x) => console.log('bulk add', x))
                     .catch(e => console.error(e));
                 console.warn("Done populating.", data[1]);
+                window.location.reload();
 
             })
         })
