@@ -339,7 +339,7 @@ async function loadData(url) {
         const data = await response.json();
         console.log(data);
         allData = allData.concat(data["hydra:member"]);
-        return allData;
+        // return allData;
         console.error(data);
 
         // Check if there's a next page
