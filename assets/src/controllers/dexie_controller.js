@@ -144,6 +144,8 @@ export default class extends Controller {
         console.info("db is now open? Is it a promise");
         this.db = db;
         window.db = db;
+        document.dispatchEvent(new CustomEvent('window.db.availble', {'detail': {dbName: db.name}}));
+
         // populate the tables after the db is open
         await this.populateEmptyTables(this.db, this.configValue.stores);
 
