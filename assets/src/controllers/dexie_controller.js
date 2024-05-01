@@ -145,7 +145,6 @@ export default class extends Controller {
         this.db = db;
         window.db = db;
         console.info("dispatched successfully");
-        document.dispatchEvent(new CustomEvent('window.db.availble', {'detail': {dbName: db.name}}));
 
         // populate the tables after the db is open
         await this.populateEmptyTables(this.db, this.configValue.stores);
@@ -214,6 +213,7 @@ export default class extends Controller {
                 console.error("Error populating table", t.name, error);
             }
         }
+        document.dispatchEvent(new CustomEvent('window.db.availble', {'detail': {dbName: db.name}}));
         if (shouldReload) {
             window.location.reload(); // Reload after populating all tables
         }
