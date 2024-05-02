@@ -132,6 +132,23 @@ export default class extends Controller {
 
     // opens the database and sets the global this.db.  Also pushes that db to appOutlet
     async openDatabase(dbName) {
+        // Get the hash parameter from the URL
+        const urlParams = new URLSearchParams(window.location.search);
+        const hashParam = urlParams.get('hash');
+
+        // Get the stored hash from localStorage
+        const storedHash = localStorage.getItem('databaseHash');
+
+        // If the hash parameter is provided and it doesn't match the stored hash
+        // or if there's no stored hash, delete the database
+        if (hashParam && hashParam !== storedHash) {
+            // Delete the database
+            await Dexie.delete(dbName);
+            console.info("Deleted existing database.");
+
+            // Store the new hash in localStorage
+            localStorage.setItem('databaseHash', hashParam);
+        }
         // this opens the database for every dexie connection!
         console.assert(this.dbNameValue, "Missing dbName in dexie_controller");
         const db = new Dexie(this.dbNameValue);
