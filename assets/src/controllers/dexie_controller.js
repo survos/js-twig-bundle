@@ -125,10 +125,10 @@ export default class extends Controller {
         }, {});
     }
 
-    initialize() {
-        super.initialize();
-        console.info("initializing %s", this.dbNameValue);
-    }
+    // initialize() {
+    //     super.initialize();
+    //     console.info("initializing %s", this.dbNameValue);
+    // }
 
     // opens the database and sets the global this.db.  Also pushes that db to appOutlet
     async openDatabase(dbName) {
@@ -154,11 +154,7 @@ export default class extends Controller {
         const db = new Dexie(this.dbNameValue);
         let schema = this.convertArrayToObject(this.configValue.stores);
         db.version(this.versionValue).stores(schema);
-        console.info("opening db...");
-
         await db.open();
-
-        console.info("db is now open? Is it a promise");
         this.db = db;
         window.db = db;
         console.info("dispatched successfully");
@@ -168,7 +164,6 @@ export default class extends Controller {
 
         // there should only be one app, but sometimes it appears to be zero.
         // this.appOutlet.setDb(this.db);
-        this.appOutlet.setDb(window.db);
         this.contentConnected();
 
         console.info(
@@ -184,6 +179,8 @@ export default class extends Controller {
             "_controller"
         );
 
+        this.appOutlet.setDb(window.db); // ??
+
         console.assert(this.hasAppOutlet, "no appOutlet!");
         this.db = this.appOutlet.getDb();
         if (!this.db) {
@@ -198,8 +195,6 @@ export default class extends Controller {
             this.appOutlet.setDb(this.db);
         } else {
             this.db = this.appOutlet.getDb();
-
-            console.warn("appOutletConnected, but db not yet set");
         }
         // console.log(app.identifier + '_controller', body);
         // console.error('page data', this.appOutlet.getProjectId);
@@ -214,18 +209,16 @@ export default class extends Controller {
                 const count = await new Promise((resolve, reject) => {
                     t.count(count => resolve(count)).catch(reject);
                 });
-    
+
                 if (count > 0) {
-                    console.warn("%s already has %d", t.name, count);
+                    // console.warn("%s already has %d", t.name, count);
                     continue; // Move to the next store
                 }
                 shouldReload = true;
                 console.warn("%s has no data, loading...", t.name);
-                
                 // Fetch and bulk put data for each page
                 await loadData(store.url,store.name);
-                
-                console.warn("Done populating.");
+                // console.warn("Done populating.");
             } catch (error) {
                 console.error("Error populating table", t.name, error);
             }
@@ -358,15 +351,15 @@ async function loadData(url, tableName) {
         const response = await fetch(nextPageUrl);
         const data = await response.json();
         console.log(data);
-        
+
         // Bulk put data for this page
-        const t = window.db.table(tableName); 
+        const t = window.db.table(tableName);
         await t.bulkPut(data["hydra:member"])
             .then((x) => console.log("bulk add", x))
             .catch((e) => console.error(e));
 
         console.warn("Done populating.", data["hydra:member"][1]);
-        
+
         // Check if there's a next page
         nextPageUrl = data["hydra:view"] && data["hydra:view"]["hydra:next"] ? data["hydra:view"]["hydra:next"] : null;
     }
