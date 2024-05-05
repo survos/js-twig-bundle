@@ -14,7 +14,17 @@ import {
     stimulus_target,
 } from "stimulus-attributes";
 
+import Routing from 'fos-routing';
+import RoutingData from '/js/fos_js_routes.js';
+Routing.setData(RoutingData);
+
 Twig.extend(function (Twig) {
+    Twig._function.extend('path', (route, routeParams={}) => {
+        // console.error(routeParams);
+        delete routeParams._keys; // seems to be added by twigjs
+        let path = Routing.generate(route, routeParams);
+        return path;
+    });
     Twig._function.extend(
         "stimulus_controller",
         (
