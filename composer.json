@@ -13,7 +13,7 @@
         "symfony/http-kernel": "^6.4 || ^7.0",
         "twig/twig": "^3.4",
         "symfony/ux-twig-component": "^2.14",
-        "survos/core-bundle": "^1.5.223",
+        "survos/core-bundle": "^1.6",
         "symfony/dom-crawler": "^7.0"
     },
     "autoload": {
