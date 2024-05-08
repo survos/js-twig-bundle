@@ -213,7 +213,6 @@ export default class extends Controller {
     async populateEmptyTables(db, stores) {
         let shouldReload = false;
         for (const store of stores) {
-            console.warn(store);
             let t = window.db.table(store.name);
             try {
                 const count = await new Promise((resolve, reject) => {
