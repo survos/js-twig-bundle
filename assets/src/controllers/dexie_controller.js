@@ -1,4 +1,4 @@
-import { Controller } from "@hotwired/stimulus";
+import {Controller} from "@hotwired/stimulus";
 
 // https://javascript.plainenglish.io/12-best-practices-for-writing-asynchronous-javascript-like-a-pro-5ac4cb95d3c8
 // now called from the TwigJsComponent Component, so it can pass in a Twig Template
@@ -16,10 +16,11 @@ import {
 
 import Routing from 'fos-routing';
 import RoutingData from '/js/fos_js_routes.js';
+
 Routing.setData(RoutingData);
 
 Twig.extend(function (Twig) {
-    Twig._function.extend('path', (route, routeParams={}) => {
+    Twig._function.extend('path', (route, routeParams = {}) => {
         // console.error(routeParams);
         delete routeParams._keys; // seems to be added by twigjs
         let path = Routing.generate(route, routeParams);
@@ -87,20 +88,30 @@ export default class extends Controller {
         // compile the template
 
         let compiledTwigTemplates = {};
+
         for (const [key, value] of Object.entries(this.twigTemplatesValue)) {
             compiledTwigTemplates[key] = Twig.twig({
-                data: value,
+                data: value.trim(),
             });
         }
         this.compiledTwigTemplates = compiledTwigTemplates;
+        console.error(compiledTwigTemplates);
         this.template = Twig.twig({
             data: this.twigTemplateValue,
         });
 
+
         if (this.refreshEventValue) {
             document.addEventListener(this.refreshEventValue, (e) => {
-                console.log("i heard an event! " + e.type);
-                this.contentConnected();
+                // the data comes from the topPage data
+                console.log("i heard an  %s event! %o", e.type, e.detail, e, this.refreshEventValue);
+                // console.error(e.detail.id, this.storeValue);
+                if (e.detail.hasOwnProperty('id')) {
+
+                    let html = this.renderPage(e.detail.id, this.storeValue);
+                } else {
+                    this.contentConnected();
+                }
             });
         }
         // idea: dispatch an event that app_controller listens for and opens the database if it doesn't already exist.
@@ -226,7 +237,7 @@ export default class extends Controller {
                 shouldReload = true;
                 console.warn("%s has no data, loading...", t.name);
                 // Fetch and bulk put data for each page
-                await loadData(store.url,store.name);
+                await loadData(store.url, store.name);
                 // console.warn("Done populating.");
             } catch (error) {
                 console.error("Error populating table", t.name, error);
@@ -270,6 +281,7 @@ export default class extends Controller {
         // // console.log(table);
         // return;
         if (this.hasAppOutlet) {
+            console.warn('hasAppOutlet!')
             // this.appOutlet.setTitle('hello???');
             // console.error(this.appOutlet.getFilter());
             // this.filter = this.appOutlet.getFilter();
@@ -281,6 +293,7 @@ export default class extends Controller {
         }
 
         if (this.filter) {
+            if (this.hasAppOutlet)
             if (this.appOutlet.getFilter()) {
                 this.filter = {
                     ...this.filter,
@@ -294,35 +307,8 @@ export default class extends Controller {
 
         // this.appOutlet.setTitle('hello???!');
         if (this.keyValue) {
-            console.error("page data", this.appOutlet.navigatorTarget.topPage.data);
-            let key = this.appOutlet.navigatorTarget.topPage.data.id;
-            console.error(this.appOutlet.navigatorTarget.topPage.data, key);
-            table = table.get(parseInt(key));
-            table
-                .then((data) => {
-                    return {
-                        content: this.template.render({
-                            data: data,
-                            globals: this.globalsValue,
-                        }),
-                        title: this.compiledTwigTemplates["title"].render({
-                            data: data,
-                            globals: this.globalsValue,
-                        }),
-                    };
-                })
-                .then(({ content, title }) => {
-                    this.contentTarget.innerHTML = content;
-                    console.log(title);
-                    if (this.hasAppOutlet) {
-                        console.error(title);
-                        this.appOutlet.setTitle(title);
-                    }
-                })
-                .catch((e) => console.error(e))
-                .finally((e) => console.log("finally rendered page"));
-
-            return;
+            console.error(this.keyValue);
+            // this.renderPage(this.storeValue, this.keyValue);
         } else if (this.filter) {
             table = table.filter((row) => {
                 // there's probably a way to use reduce() or something
@@ -336,20 +322,66 @@ export default class extends Controller {
             });
         }
 
-        // table.toArray().then( (data) => {
-        //     data.forEach( (row) => {
-        //         console.log(row);
-        //         // nextPokenumber++;
-        //     })
-        // })
 
         table
             .toArray()
             .then((rows) =>
-                this.template.render({ rows: rows, globals: this.globalsValue })
+                this.template.render({rows: rows, globals: this.globalsValue})
             )
             .then((html) => (this.element.innerHTML = html));
     }
+
+
+    async renderPage(key, store) {
+        // console.log(this.appOutlet.tabbarTarget.getActiveIndex());
+        //
+        // console.warn(this.appOutlet.tabbarTarget.getActiveIndex());
+
+        // console.error("top page %o", this.appOutlet.navigatorTarget.topPage);
+        // console.error("page data", this.appOutlet.navigatorTarget.topPage.data);
+        // let key = this.appOutlet.navigatorTarget.topPage.data.id;
+        // console.error(this.appOutlet.navigatorTarget.topPage.data, key);
+        let table = window.db.table(store);
+
+        table = table.get(parseInt(key));
+        table
+            .then((data) => {
+                console.error(data, key, store);
+                    return {
+                        content: this.template.render({
+                            data: data,
+                            globals: this.globalsValue,
+                        }),
+                        title:
+                            this.compiledTwigTemplates.hasOwnProperty('title')
+                                ? this.compiledTwigTemplates["title"].render({
+                                    data: data,
+                                    globals: this.globalsValue,
+                                })
+                                : 'no title'
+                    };
+                }
+            )
+            .then(
+                ({
+                     content
+                     ,
+                     title
+                 }
+                ) => {
+                    this.contentTarget.innerHTML = content;
+                    console.log(title);
+                    if (this.hasAppOutlet) {
+                        console.error(title);
+                        this.appOutlet.setTitle(title);
+                    }
+                }
+            )
+            .catch((e) => console.error(e))
+            .finally((e) => console.log("finally rendered page"));
+
+    }
+
 }
 
 async function loadData(url, tableName) {
