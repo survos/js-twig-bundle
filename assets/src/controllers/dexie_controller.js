@@ -294,13 +294,17 @@ export default class extends Controller {
 
         if (this.filter) {
             if (this.hasAppOutlet)
-            if (this.appOutlet.getFilter()) {
-                this.filter = {
-                    ...this.filter,
-                    ...this.appOutlet.getFilter(this.refreshEventValue),
-                };
-                // console.error(this.filter);
-            }
+                try {
+                    if (this.appOutlet.getFilter()) {
+                        this.filter = {
+                            ...this.filter,
+                            ...this.appOutlet.getFilter(this.refreshEventValue),
+                        };
+                        // console.error(this.filter);
+                    }
+                } catch (e) {
+                    console.error(e);
+                }
         } else {
             this.filter = this.appOutlet.getFilter(this.refreshEventValue);
         }
