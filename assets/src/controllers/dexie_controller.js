@@ -95,7 +95,6 @@ export default class extends Controller {
             });
         }
         this.compiledTwigTemplates = compiledTwigTemplates;
-        console.error(compiledTwigTemplates);
         this.template = Twig.twig({
             data: this.twigTemplateValue,
         });
@@ -303,11 +302,13 @@ export default class extends Controller {
                         // console.error(this.filter);
                     }
                 } catch (e) {
-                    console.error(e);
+                    console.error(e.message);
                 }
         } else {
             this.filter = this.appOutlet.getFilter(this.refreshEventValue);
         }
+
+        console.error(this.filter);
 
         // this.appOutlet.setTitle('hello???!');
         if (this.keyValue) {
