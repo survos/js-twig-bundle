@@ -177,14 +177,15 @@ export default class extends Controller {
         await db.open();
         this.db = db;
         window.db = db;
-        console.info("dispatched successfully");
+        console.info("dispatched successfully",this.configValue.stores);
 
-        // populate the tables after the db is open
-        await this.populateEmptyTables(this.db, this.configValue.stores);
+        // this.appOutlet.test("I am from dexie")
+
+
 
         // there should only be one app, but sometimes it appears to be zero.
         // this.appOutlet.setDb(this.db);
-        this.contentConnected();
+        await this.contentConnected();
 
         console.info(
             "at this point, the tables should be populated and db should be open"
@@ -220,23 +221,25 @@ export default class extends Controller {
         // console.error('page data', this.appOutlet.getProjectId);
     }
 
-    async populateEmptyTables(db, stores) {
+    async populateEmptyTables(db, stores, filteredStores) {
         let shouldReload = false;
         for (const store of stores) {
+            console.log(store,db, 'Doesnt have name?')
             let t = window.db.table(store.name);
             try {
                 const count = await new Promise((resolve, reject) => {
                     t.count(count => resolve(count)).catch(reject);
                 });
-
+                console.log(count, 'YYYYYYYYYYYYYYY');
                 if (count > 0) {
                     // console.warn("%s already has %d", t.name, count);
                     continue; // Move to the next store
                 }
                 shouldReload = true;
-                console.warn("%s has no data, loading...", t.name);
+                console.warn("%s has no data, loading...", t.name,filteredStores.find((f)=> f.name === store.name));
+                const filteredUrl = filteredStores ? filteredStores.find((f)=> f.name === store.name).url : store.url
                 // Fetch and bulk put data for each page
-                await loadData(store.url, store.name);
+                await loadData(filteredUrl, store.name);
                 // console.warn("Done populating.");
             } catch (error) {
                 console.error("Error populating table", t.name, error);
@@ -268,6 +271,7 @@ export default class extends Controller {
         // https://dexie.org/docs/Dexie/Dexie.table()
         let table = window.db.table(this.storeValue);
         console.log(table);
+        console.log('XXXXXXXXXXXXXXX', this.configValue.stores)
 
         if (this.hasAppOutlet) {
             // console.error(this.hasAppOutlet, this.appOutlet.getCurrentProjectId());
@@ -308,7 +312,11 @@ export default class extends Controller {
             this.filter = this.appOutlet.getFilter(this.refreshEventValue);
         }
 
-        console.error(this.filter);
+        console.error(this.filter, 'XXXXXXXXXXXXXXXXYYYYYYYYYY');
+        // populate the tables after the db is open
+        const modifiedStores = this.appOutlet.getProjectFiltered(this.configValue.stores);
+        console.log('GGGGGGGG', modifiedStores, 'HHHBBBBB', this.db, window.db);
+        await this.populateEmptyTables(window.db, this.configValue.stores, modifiedStores);
 
         // this.appOutlet.setTitle('hello???!');
         if (this.keyValue) {
@@ -391,7 +399,7 @@ export default class extends Controller {
 
 async function loadData(url, tableName) {
     let nextPageUrl = url;
-
+    console.log('TRRRRRRR', url);
     while (nextPageUrl) {
         console.log("fetching " + nextPageUrl);
         const response = await fetch(nextPageUrl);
