@@ -227,14 +227,19 @@ export default class extends Controller {
             console.log(store,db, 'Doesnt have name?')
             let t = window.db.table(store.name);
             try {
-                const count = await new Promise((resolve, reject) => {
-                    t.count(count => resolve(count)).catch(reject);
-                });
-                console.log(count, 'YYYYYYYYYYYYYYY');
-                if (count > 0) {
-                    // console.warn("%s already has %d", t.name, count);
-                    continue; // Move to the next store
+                const isPopulated = await this.appOutlet.isPopulated(t);
+                console.log(isPopulated,'-------xxxxxxxxx');
+                if(isPopulated){
+                    continue;
                 }
+                // const count = await new Promise((resolve, reject) => {
+                //     t.count(count => resolve(count)).catch(reject);
+                // });
+                // console.log(count, 'YYYYYYYYYYYYYYY');
+                // if (count > 0) {
+                //     // console.warn("%s already has %d", t.name, count);
+                //     continue; // Move to the next store
+                // }
                 shouldReload = true;
                 console.warn("%s has no data, loading...", t.name,filteredStores.find((f)=> f.name === store.name));
                 const filteredUrl = filteredStores ? filteredStores.find((f)=> f.name === store.name).url : store.url
