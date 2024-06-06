@@ -228,7 +228,6 @@ export default class extends Controller {
             let t = window.db.table(store.name);
             try {
                 const isPopulated = await this.appOutlet.isPopulated(t);
-                console.log(isPopulated,'-------xxxxxxxxx');
                 if(isPopulated){
                     continue;
                 }
@@ -275,8 +274,7 @@ export default class extends Controller {
         // is db a Dexie instance?  It shouldn't be complaining about void;
         // https://dexie.org/docs/Dexie/Dexie.table()
         let table = window.db.table(this.storeValue);
-        console.log(table);
-        console.log('XXXXXXXXXXXXXXX', this.configValue.stores)
+        // console.log(table,  this.configValue.stores)
 
         if (this.hasAppOutlet) {
             // console.error(this.hasAppOutlet, this.appOutlet.getCurrentProjectId());
