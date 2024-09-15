@@ -1,15 +1,15 @@
 import {Controller} from "@hotwired/stimulus";
 import Routing from 'fos-routing';
 import RoutingData from '/js/fos_js_routes.js';
+import Twig from 'twig';
+
 Routing.setData(RoutingData);
 
-import Twig from 'twig';
 Twig.extend(function (Twig) {
     Twig._function.extend('path', (route, routeParams={}) => {
         // console.error(routeParams);
         delete routeParams._keys; // seems to be added by twigjs
-        let path = Routing.generate(route, routeParams);
-        return path;
+        return Routing.generate(route, routeParams);
     });
 });
 
