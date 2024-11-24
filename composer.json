@@ -1,32 +1,32 @@
 {
     "name": "survos/js-twig-bundle",
-    "type": "symfony-bundle",
     "description": "wrap the jstwig library in a Symfony UX component",
     "keywords": [
         "symfony-ux"
     ],
     "license": "MIT",
+    "type": "symfony-bundle",
     "require": {
-        "php": "^8.1",
-        "symfony/config": "^6.4 || ^7.0",
-        "symfony/dependency-injection": "^6.4 || ^7.0",
-        "symfony/http-kernel": "^6.4 || ^7.0",
+        "php": "^8.3",
+        "symfony/config": "^6.4 || ^7.1",
+        "symfony/dependency-injection": "^6.4 || ^7.1",
+        "symfony/http-kernel": "^6.4 || ^7.1",
         "twig/twig": "^3.4",
-        "symfony/ux-twig-component": "^2.14",
-        "survos/core-bundle": "^1.5.395",
-        "symfony/dom-crawler": "^7.0"
+        "symfony/ux-twig-component": "^2.8",
+        "survos/core-bundle": "^1.5",
+        "symfony/dom-crawler": "^6.4 || ^7.1"
+    },
+    "require-dev": {
+        "phpstan/phpstan": "^2.0",
+        "symfony/browser-kit": "^6.4 || ^7.1",
+        "symfony/framework-bundle": "^6.4 || ^7.1",
+        "symfony/phpunit-bridge": "^6.4 || ^7.1",
+        "symfony/twig-bundle": "^6.4 || ^7.1",
+        "symfony/var-dumper": "^6.4 || ^7.1"
     },
     "autoload": {
         "psr-4": {
             "Survos\\JsTwigBundle\\": "src/"
         }
-    },
-    "require-dev": {
-        "phpstan/phpstan": "^1.10",
-        "symfony/browser-kit": "^6.4 || ^7.0",
-        "symfony/framework-bundle": "^6.4 || ^7.0",
-        "symfony/phpunit-bridge": "^6.4 || ^7.0",
-        "symfony/twig-bundle": "^6.4 || ^7.0",
-        "symfony/var-dumper": "^6.4 || ^7.0"
     }
 }
