@@ -13,7 +13,7 @@
         "symfony/http-kernel": "^6.4 || ^7.1",
         "twig/twig": "^3.4",
         "symfony/ux-twig-component": "^2.8",
-        "survos/core-bundle": "^1.5.398",
+        "survos/core-bundle": "^1.5.399",
         "symfony/dom-crawler": "^6.4 || ^7.1"
     },
     "require-dev": {
