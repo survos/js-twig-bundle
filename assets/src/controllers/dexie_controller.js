@@ -226,7 +226,6 @@ export default class extends Controller {
         for (const store of stores) {
             console.log(store,db, 'Doesnt have name?')
             let t = window.db.table(store.name);
-            try {
                 const isPopulated = await this.appOutlet.isPopulated(t);
                 if(isPopulated){
                     continue;
@@ -240,11 +239,16 @@ export default class extends Controller {
                 //     continue; // Move to the next store
                 // }
                 shouldReload = true;
+                console.warn(store.name, store.url);
                 console.warn("%s has no data, loading...", t.name,filteredStores.find((f)=> f.name === store.name));
-                const filteredUrl = filteredStores ? filteredStores.find((f)=> f.name === store.name).url : store.url
+                // const filteredUrl = filteredStores ? filteredStores.find((f)=> f.name === store.name).url : store.url;
+                const filteredUrl = store.url;
+
+                // console.error(filteredUrl, filteredStores);
                 // Fetch and bulk put data for each page
                 await loadData(filteredUrl, store.name);
                 // console.warn("Done populating.");
+            try {
             } catch (error) {
                 console.error("Error populating table", t.name, error);
             }
@@ -299,6 +303,7 @@ export default class extends Controller {
         }
 
         if (this.filter) {
+            console.log(this.filter);
             if (this.hasAppOutlet)
                 try {
                     if (this.appOutlet.getFilter()) {
@@ -315,10 +320,11 @@ export default class extends Controller {
             this.filter = this.appOutlet.getFilter(this.refreshEventValue);
         }
 
-        console.error(this.filter, 'XXXXXXXXXXXXXXXXYYYYYYYYYY');
         // populate the tables after the db is open
-        const modifiedStores = this.appOutlet.getProjectFiltered(this.configValue.stores);
-        console.log('GGGGGGGG', modifiedStores, 'HHHBBBBB', this.db, window.db);
+
+        // const modifiedStores = this.appOutlet.getProjectFiltered(this.configValue.stores);
+        // console.log('GGGGGGGG', modifiedStores, 'HHHBBBBB', this.db, window.db);
+        const modifiedStores = [];
         await this.populateEmptyTables(window.db, this.configValue.stores, modifiedStores);
 
         // this.appOutlet.setTitle('hello???!');
@@ -402,7 +408,6 @@ export default class extends Controller {
 
 async function loadData(url, tableName) {
     let nextPageUrl = url;
-    console.log('TRRRRRRR', url);
     while (nextPageUrl) {
         console.log("fetching " + nextPageUrl);
         const response = await fetch(nextPageUrl);
@@ -411,13 +416,17 @@ async function loadData(url, tableName) {
 
         // Bulk put data for this page
         const t = window.db.table(tableName);
-        await t.bulkPut(data["hydra:member"])
+        const rows = data["member"];
+        console.log(rows);
+        await t.bulkPut(rows)
             .then((x) => console.log("bulk add", x))
-            .catch((e) => console.error(e));
+            // .catch((e) => console.error(e))
+        ;
 
-        console.warn("Done populating.", data["hydra:member"][1]);
+        console.table( rows[1]??[]);
+        console.error(data);
 
         // Check if there's a next page
-        nextPageUrl = data["hydra:view"] && data["hydra:view"]["hydra:next"] ? data["hydra:view"]["hydra:next"] : null;
+        nextPageUrl = data["view"] && data["view"]["next"] ? data["view"]["next"] : null;
     }
 }
