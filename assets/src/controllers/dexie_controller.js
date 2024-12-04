@@ -4,15 +4,10 @@ import {Controller} from "@hotwired/stimulus";
 // now called from the TwigJsComponent Component, so it can pass in a Twig Template
 // combination api-platform, inspection-bundle, dexie and twigjs
 // loads data from API Platform to dexie, renders dexie data in twigjs
-
 // import db from '../db.js';
 import Twig from "twig";
 import Dexie from "dexie";
-import {
-    stimulus_controller,
-    stimulus_action,
-    stimulus_target,
-} from "stimulus-attributes";
+import {stimulus_action, stimulus_controller, stimulus_target,} from "stimulus-attributes";
 
 import Routing from 'fos-routing';
 import RoutingData from '/js/fos_js_routes.js';
@@ -20,12 +15,6 @@ import RoutingData from '/js/fos_js_routes.js';
 Routing.setData(RoutingData);
 
 Twig.extend(function (Twig) {
-    Twig._function.extend('path', (route, routeParams = {}) => {
-        // console.error(routeParams);
-        delete routeParams._keys; // seems to be added by twigjs
-        let path = Routing.generate(route, routeParams);
-        return path;
-    });
     Twig._function.extend(
         "stimulus_controller",
         (
@@ -49,6 +38,11 @@ Twig.extend(function (Twig) {
         (controllerName, r, n = null, a = {}) =>
             stimulus_action(controllerName, r, n, a)
     );
+    Twig._function.extend('path', (route, routeParams = {}) => {
+        // console.error(routeParams);
+        delete routeParams._keys; // seems to be added by twigjs
+        return Routing.generate(route, routeParams);
+    });
 });
 
 /* stimulusFetch: 'lazy' */
