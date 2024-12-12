@@ -4,7 +4,9 @@ namespace Survos\JsTwigBundle\Components;
 
 use Psr\Log\LoggerInterface;
 use Survos\JsTwigBundle\TwigBlocksTrait;
+use Symfony\Component\OptionsResolver\OptionsResolver;
 use Symfony\UX\TwigComponent\Attribute\AsTwigComponent;
+use Symfony\UX\TwigComponent\Attribute\PreMount;
 use Twig\Environment;
 
 
@@ -13,9 +15,10 @@ final class DexieTwigComponent extends AsTwigComponent
 {
     use TwigBlocksTrait;
     public string $store; // required
-    public ?iterable $globals=null;
+    public iterable|object|null $globals=null;
     public null|string|int $key=null;
     public ?string $refreshEvent=null;
+    // public string $caller; // in TwigBlocksTrait
 
     public function __construct(
         private Environment $twig,
@@ -26,11 +29,6 @@ final class DexieTwigComponent extends AsTwigComponent
         //        ='@survos/grid-bundle/api_grid';
     }
 
-
-    public function getRefreshEvent(): string
-    {
-        return $this->refreshEvent;
-    }
 
     public function getFilter()
     {
@@ -102,6 +100,38 @@ final class DexieTwigComponent extends AsTwigComponent
     {
         return $this->config['version'];
     }
+
+    #[PreMount]
+    public function preMount(array $data): array
+    {
+        // validate data
+        $resolver = (new OptionsResolver())
+            ->setDefaults([
+                'caller' => null,
+                'refreshEvent' => null,
+                'key' => null,
+                'filter' => [],
+                'globals' => (object)[],
+                'store' => null,
+            ]);
+        if (array_key_exists('globals', $data) && is_array($data['globals'])) {
+            $data['globals'] = (object)$data['globals'];
+        }
+        $resolver->setRequired([
+            'store',
+            'caller',
+            'refreshEvent',
+        ]);
+        $resolver
+            ->setAllowedTypes('key', ['null', 'string','int'])
+            ->setAllowedTypes('filter', ['array'])
+            ->setAllowedTypes('globals', ['object'])
+        ;
+
+        $data = $resolver->resolve($data);
+        return $data;
+    }
+
 
 
 

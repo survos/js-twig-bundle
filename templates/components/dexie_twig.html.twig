@@ -2,6 +2,10 @@
 
 {% set tableUrls = this.tableUrls|length ? this.tableUrls : {} %}
 
+{#  @todo: move to ons-dexie bridge #}
+{#templateId: this.templateId,#}
+{#templateType: this.type,#}
+
 <div {{ attributes }}
         {{ stimulus_controller(_sc, {
             refreshEvent: this.refreshEvent,
@@ -19,7 +23,8 @@
             controllerOutlets = { 'app': '#app' }
         ) }}>
     <div {{ stimulus_target(_sc, 'content') }}>
-        The listing will be here, rendered from the DexieTwig<i>Component</i>
+        {{ _self }}
+        The content from the twig+js with dexie data will be rendered here. DexieTwig<i>Component</i>
     </div>
 
 
