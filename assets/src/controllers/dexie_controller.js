@@ -90,6 +90,7 @@ export default class extends Controller {
         console.assert(this.refreshEventValue, "missing refreshEvent");
         console.assert(this.hasAppOutlet, "missing app outlet");
         console.assert(this.dbNameValue, "missing dbName");
+
         // this.appOutlet.setTitle('test setTitle from appOutlet');
         // this.populateEmptyTables(db, this.configValue['stores']);
 
@@ -136,6 +137,19 @@ export default class extends Controller {
         console.assert(this.hasAppOutlet, "appOutlet not loaded!");
         // we shouldn't need to call this every time, since appOutlet.getDb caches the db.
         // console.error('can we get rid of this call?')
+        document.addEventListener('appOutlet.connected', (e) => {
+            // the data comes from the topPage data
+            console.warn(this.identifier + " heard %s event! %o", e.type, e.detail);
+            // console.error(e.detail.id, this.storeValue);
+            // @todo: types of events, like detail, list,
+            if (e.detail.hasOwnProperty('id')) {
+                let html = this.renderPage(e.detail.id, this.storeValue);
+                console.warn(html);
+            } else {
+                this.contentConnected();
+            }
+        });
+
 
         if (!window.called) {
             window.called = true;
@@ -154,6 +168,8 @@ export default class extends Controller {
             // }
         }
     }
+
+
 
     convertArrayToObject(array, key) {
         return array.reduce((acc, curr) => {
@@ -207,7 +223,12 @@ export default class extends Controller {
         return this.db;
     }
 
-    appOutletConnectedxx(app, body) {
+    appOutletConnected(app, element) {
+        console.error('appOutletConnected');
+        console.warn(app, element);
+        this.dispatch(new CustomEvent('appOutlet.connected', {detail: app.identifier}));
+        return;
+
         console.log(
             `${this.callerValue}: ${app.identifier}_controller is now connected to ` +
             this.identifier +
