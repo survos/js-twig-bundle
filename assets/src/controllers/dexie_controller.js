@@ -113,7 +113,7 @@ export default class extends Controller {
         });
 
 
-        // register events
+        // register dexie events that use the database to update a page or tab
         const eventName = this.refreshEventValue;
         if (eventName) {
             console.warn(`Listening for ${eventName}`);
@@ -134,39 +134,25 @@ export default class extends Controller {
         // idea: dispatch an event that app_controller listens for and opens the database if it doesn't already exist.
         // there is only one app_controller, so this.db can be share.
         // app should be in the dom, not sure why this.appOutlet not immediately available when dexie connects.
-        console.assert(this.hasAppOutlet, "appOutlet not loaded!");
         // we shouldn't need to call this every time, since appOutlet.getDb caches the db.
         // console.error('can we get rid of this call?')
         document.addEventListener('appOutlet.connected', (e) => {
             // the data comes from the topPage data
             console.warn(this.identifier + " heard %s event! %o", e.type, e.detail);
+
             // console.error(e.detail.id, this.storeValue);
             // @todo: types of events, like detail, list,
             if (e.detail.hasOwnProperty('id')) {
                 let html = this.renderPage(e.detail.id, this.storeValue);
                 console.warn(html);
             } else {
+
                 this.contentConnected();
             }
         });
 
 
-        if (!window.called) {
-            window.called = true;
-            this.openDatabase(this.dbNameValue);
-        }
 
-        // maybe is has one but isn't connected?
-        if (this.hasAppOutlet) {
-            // moved to appOutletConnected
-            // get the database from the app.  Create it if it doesn't exist.
-            // this.db = this.appOutlet.getDb();
-            // if (!this.db) {
-            //     this.openDatabase(this.dbNameValue);
-            //     // this.appOutlets.forEach(app => app.setDb(db));
-            //     // this.contentConnected();
-            // }
-        }
     }
 
 
@@ -224,16 +210,22 @@ export default class extends Controller {
     }
 
     appOutletConnected(app, element) {
-        console.error('appOutletConnected');
-        console.warn(app, element);
-        this.dispatch(new CustomEvent('appOutlet.connected', {detail: app.identifier}));
-        return;
-
-        console.log(
+        // console.warn(app, element);
+        console.error(
             `${this.callerValue}: ${app.identifier}_controller is now connected to ` +
             this.identifier +
             "_controller"
         );
+        console.error(window.called);
+        if (!window.called) {
+            window.called = true;
+            this.openDatabase(this.dbNameValue);
+        }
+
+        this.dispatch(new CustomEvent('appOutlet.connected', {detail: app.identifier}));
+
+
+        return;
 
         this.appOutlet.setDb(window.db); // ??
 
@@ -328,11 +320,6 @@ export default class extends Controller {
         // }
         // // console.log(table);
         // return;
-        if (!this.hasAppOutlet) {
-            console.assert(this.hasAppOutlet, "missing appOutlet, skipping...");
-            return;
-        }
-
         if (this.filter.length) {
             console.log(this.filter);
             if (this.hasAppOutlet)
