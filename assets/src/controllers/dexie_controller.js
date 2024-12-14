@@ -415,8 +415,7 @@ export default class extends Controller {
             )
             .then(
                 ({
-                     content
-                     ,
+                     content,
                      title
                  }
                 ) => {
