@@ -48,7 +48,7 @@ final class DexieTwigComponent extends AsTwigComponent
         assert(array_key_exists('twig_template', $this->getTwigBlocks()), "Missing 'twig_template' in " .
           $this->getTwigSource()
         );
-        return $this->getTwigBlocks()['twig_template'];
+        return $this->getTwigBlocks()['twig_template']['html'];
     }
 
     public function getTwigTemplates()

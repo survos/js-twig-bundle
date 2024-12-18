@@ -22,6 +22,8 @@
         },
             controllerOutlets = { 'app': '#app' }
         ) }}>
+
+    {# idea: each twig block passed in could have it's own target? #}
     <div {{ stimulus_target(_sc, 'content') }}>
         {{ _self }}
         The content from the twig+js with dexie data will be rendered here. DexieTwig<i>Component</i>

@@ -70,13 +70,16 @@ trait TwigBlocksTrait
                 $allTwigBlocks = $blocks->each(function (Crawler $node, $i) use ($componentHtml) {
 //                    https://stackoverflow.com/questions/15133541/get-raw-html-code-of-element-with-symfony-domcrawler
                     $blockName = $node->attr('name');
+                    $wrapper = $node->attr('data-element');
                     $id = $node->attr('id', null);
+                    $extras = [];
                     if ($id) {
-                        $preg = sprintf('id="%s">(.*?)<!-- *%s', $id, $id);
+                        $preg = sprintf('id="%s"(.*?)>(.*?)<!-- *%s', $id, $id);
                         if (preg_match("/$preg/sm", $componentHtml, $mm)) {
-                            $html = $mm[1];
+                            $extras = $mm[1];
+                            $html = $mm[2];
                         } else {
-                            throw new \Exception("Invalid closing for : $id");
+                            throw new \Exception("Invalid closing for : $id in " . $componentHtml);
                         }
                     } else {
                         $html = $node->html();
@@ -87,7 +90,7 @@ trait TwigBlocksTrait
                     // hack for twig > and <
                     $html = str_replace(['&lt;', '&gt;'], ['<', '>'], $html);
 //                    dd(false, $node->text());
-                    return [$blockName => $html];
+                    return [$blockName => ['extra' => $extras, 'wrapper' => $wrapper, 'html' => $html]];
                 });
             }
 

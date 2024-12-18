@@ -49,21 +49,13 @@ Twig.extend(function (Twig) {
 export default class extends Controller {
     static targets = ['content'];
     static values = {
-        twigTemplate: String,
+        twigTemplate: String, // the specific template to render
         twigTemplates: Object,
         refreshEvent: String,
-        // templateId: {
-        //     type: String,
-        //     default: "@no-template",
-        // },
-        // type: {
-        //     type: String,
-        //     default: "page",
-        // },
-        // event: {
-        //     type: String,
-        //     default: "",
-        // },
+        type: {
+            type: String,
+            default: "list", // list, item
+        },
         dbName: String,
         caller: String,
         // because passing an object is problematic if empty, just pass the config and parse it.
@@ -102,16 +94,34 @@ export default class extends Controller {
         let compiledTwigTemplates = {};
 
         // these are the templates within the <twig:dexie> component
+        console.error(this.twigTemplatesValue);
         for (const [key, value] of Object.entries(this.twigTemplatesValue)) {
             compiledTwigTemplates[key] = Twig.twig({
-                data: value.trim(),
+                data: value.html.trim(),
             });
         }
         this.compiledTwigTemplates = compiledTwigTemplates;
+
+        // the actual jstwig template code, passed into the renderer
+        // console.error(this.twigTemplateValue);
+        // this should be multiple templates, dispatched as events or populating a target if it exists.
         this.template = Twig.twig({
             data: this.twigTemplateValue,
         });
 
+        document.addEventListener('dexie.load-data', (e) => {
+            if (!window.called) {
+                window.called = true;
+                this.openDatabase(this.dbNameValue);
+            }
+
+            this.dispatch(new CustomEvent('appOutlet.connected', {detail: app.identifier}));
+
+            this.openDatabase(this.dbNameValue);
+            // console.error(event);
+            // the data comes from the topPage data
+            console.warn(this.identifier + " heard %s event! %o", e.type, e.detail);
+        });
 
         // register dexie events that use the database to update a page or tab
         const eventName = this.refreshEventValue;
@@ -150,9 +160,6 @@ export default class extends Controller {
                 this.contentConnected();
             }
         });
-
-
-
     }
 
 
@@ -177,6 +184,7 @@ export default class extends Controller {
 
         // Get the stored hash from localStorage
         const storedHash = localStorage.getItem('databaseHash');
+        console.error(storedHash);
 
         // If the hash parameter is provided and it doesn't match the stored hash
         // or if there's no stored hash, delete the database
@@ -210,13 +218,13 @@ export default class extends Controller {
     }
 
     appOutletConnected(app, element) {
+        // return; // move to regular events
         // console.warn(app, element);
         console.error(
             `${this.callerValue}: ${app.identifier}_controller is now connected to ` +
             this.identifier +
             "_controller"
         );
-        console.error(window.called);
         if (!window.called) {
             window.called = true;
             this.openDatabase(this.dbNameValue);
@@ -320,6 +328,7 @@ export default class extends Controller {
         // }
         // // console.log(table);
         // return;
+
         if (this.filter.length) {
             console.log(this.filter);
             if (this.hasAppOutlet)
