@@ -59,6 +59,7 @@ trait TwigBlocksTrait
                 $selector = '#' . $this->getId();
                 $text = $crawler->filter($selector)->html();
                 $text =  urldecode($text);
+
                 $customColumnTemplates[$this->getId()] = $text;
                 return $customColumnTemplates;
             }
@@ -67,8 +68,17 @@ trait TwigBlocksTrait
             $blocks = $crawler->filterXPath('//block');
             if ($blocks->count() > 0) {
 
+
                 $allTwigBlocks = $blocks->each(function (Crawler $node, $i) use ($componentHtml) {
-//                    https://stackoverflow.com/questions/15133541/get-raw-html-code-of-element-with-symfony-domcrawler
+                    dd($node);
+                    foreach ($crawler->getNode(0)->attributes as $attribute) {
+                        dd($attribute->name, $attribute->value);
+                    }
+
+
+
+
+                    //                    https://stackoverflow.com/questions/15133541/get-raw-html-code-of-element-with-symfony-domcrawler
                     $blockName = $node->attr('name');
                     $wrapper = $node->attr('data-element');
                     $id = $node->attr('id', null);
