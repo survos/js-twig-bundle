@@ -70,6 +70,10 @@ trait TwigBlocksTrait
 
 
                 $allTwigBlocks = $blocks->each(function (Crawler $node, $i) use ($componentHtml) {
+                    dd($node);
+                    foreach ($crawler->getNode(0)->attributes as $attribute) {
+                        dd($attribute->name, $attribute->value);
+                    }
 
 
 
