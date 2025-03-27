@@ -70,14 +70,6 @@ trait TwigBlocksTrait
 
 
                 $allTwigBlocks = $blocks->each(function (Crawler $node, $i) use ($componentHtml) {
-                    dd($node);
-                    foreach ($crawler->getNode(0)->attributes as $attribute) {
-                        dd($attribute->name, $attribute->value);
-                    }
-
-
-
-
                     //                    https://stackoverflow.com/questions/15133541/get-raw-html-code-of-element-with-symfony-domcrawler
                     $blockName = $node->attr('name');
                     $wrapper = $node->attr('data-element');
