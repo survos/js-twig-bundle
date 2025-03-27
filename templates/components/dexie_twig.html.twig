@@ -19,17 +19,19 @@
             version: this.version,
             store: this.store,
             caller: this.caller,
+            initDb: this.initDb,
         },
             controllerOutlets = { 'app': '#app' }
         ) }}>
 
+
     {# idea: each twig block passed in could have it's own target? #}
-    <div {{ stimulus_target(_sc, 'content') }}>
-        {{ _self }}
-        The content from the twig+js with dexie data will be rendered here. DexieTwig<i>Component</i>
-    </div>
+    {# <h3>The content div for {{ caller }} with {{ this.store.name }} is below.</h3>
+    <div id="dexie-content-{{ this.store.name }}" {{ stimulus_target(_sc, 'content') }}>
+        The content {{ _self }} // {{ this.store.name }}
+        {{ this.store.schema|default('~') }}
+    </div> #}
 
-
-    <!-- component html -->
+    <!-- component html {{ _self }}-->
 
 </div>

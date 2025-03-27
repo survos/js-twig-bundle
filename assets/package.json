@@ -8,7 +8,7 @@
       "dexie": {
         "main": "src/controllers/dexie_controller.js",
         "webpackMode": "eager",
-        "fetch": "lazy",
+        "fetch": "eager",
         "enabled": true,
         "autoimport": {
         }

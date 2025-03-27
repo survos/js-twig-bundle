@@ -52,6 +52,7 @@ class SurvosJsTwigBundle extends AbstractBundle
             ->scalarNode('url')->info("the API to use to load if empty.  json-ld iterates through pages")
                 ->example("/api/friends")
             ->end()
+            ->scalarNode('response_key')->info("key if API returns an object response, e.g. dummyjson returns {'products': [...]}")->example("++i,age")->end()
             ->end()
             ->end()
             ->end()
