@@ -22,6 +22,8 @@ final class DexieTwigComponent extends AsTwigComponent
     public ?string $url = null;
     // public string $caller; // in TwigBlocksTrait
     public bool $initDb = false;
+    //add queries object
+    public iterable|object|null $queries=null;
 
     public function __construct(
         private Environment $twig,
@@ -128,12 +130,18 @@ final class DexieTwigComponent extends AsTwigComponent
                 'filter' => [],
 //                'dbConfig' => [],
                 'globals' => (object)[],
+                'queries' => (object)[],
                 'store' => null,
                 'initDb' => false,
             ]);
         if (array_key_exists('globals', $data) && is_array($data['globals'])) {
             $data['globals'] = (object)$data['globals'];
         }
+
+        if (array_key_exists('queries', $data) && is_array($data['queries'])) {
+            $data['queries'] = (object)$data['queries'];
+        }
+
         $resolver->setRequired([
             'store',
             'caller',
@@ -145,6 +153,7 @@ final class DexieTwigComponent extends AsTwigComponent
             ->setAllowedTypes('filter', ['array'])
             ->setAllowedTypes('store', ['array'])
             ->setAllowedTypes('globals', ['object'])
+            ->setAllowedTypes('queries', ['object'])
         ;
 
         $data = $resolver->resolve($data);

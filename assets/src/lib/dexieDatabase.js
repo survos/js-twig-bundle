@@ -1,41 +1,78 @@
 import Dexie from 'dexie';
 
 class DbUtilities {
-    constructor(config) {
+    constructor(config,locale = 'en') {
         this.config = config;
+        console.log('Config: ', locale);
         //hard set version to 1 , and local to en
         let version = 1;
-        let local = 'es';
-        //prepare db from config
-        //alert('config.database: ' + JSON.stringify(config.database));
         let db = new Dexie(config.database);
         db.version(version).stores(this.convertArrayToObject(config.stores));
         //call db connection
         this.db = db;
         window.db = db;
+
+        //store locale in local storage
+        if(locale) {
+            //check stored locale , if diffrent , destroy db
+            if (localStorage.getItem('locale') !== locale) {
+                console.log('locale changed, destroying db');
+                db.delete().then(() => {
+                    console.log("Database successfully deleted");
+                }).catch((err) => {
+                    console.error("Could not delete database");
+                });
+            }
+            localStorage.setItem('locale', locale);
+        }
+
         db.open().then(() => {
             //this.initDatabase();
+            console.log("DbUtilities: Database connected");
         }).catch(err => {
             console.error('Failed to connect to database');
         });
-        this.local = local;
+
+
+        this.locale = locale;
         //if dataProgress element is present bind gauge to it
         let dataProgress = document.getElementById('dataProgress');
-        var gauge = app.gauge.create({
-            el: dataProgress,
-            value: 0,
-            valueText: '0%',
-            valueTextColor: '#ff9800',
-            borderColor: '#ff9800',
-            type: 'circle',
-            labelText: 'Loading Data ...',
-            on: {
-                beforeDestroy: function () {
-                    console.log('Gauge will be destroyed')
-                }
+
+        this.countEmptyTables().then(emptyTables => {
+            if (emptyTables.length > 0) {
+                console.log('Empty tables : ' + emptyTables.map(table => table.name).join(', '));
+                var gauge = app.gauge.create({
+                    el: dataProgress,
+                    value: 0,
+                    valueText: '0%',
+                    valueTextColor: '#ff9800',
+                    borderColor: '#ff9800',
+                    type: 'circle',
+                    labelText: 'Loading Data ...',
+                    on: {
+                        beforeDestroy: function () {
+                            console.log('Gauge will be destroyed')
+                        }
+                    }
+                });
+                this.gauge = gauge;
+                this.populateEmptyTables(emptyTables);
+            } else {
+                console.log('All tables are populated');
+                //emit dbready event
+                this.dispatchReadyEvent({});
             }
         });
-        this.gauge = gauge;
+
+        //refresh btn temporary
+        //bind refresh db to #refreshDatabase
+        let refreshButton = document.getElementById("refreshDatabase");
+        if (refreshButton) {
+            refreshButton.addEventListener("click", (e) => {
+                e.preventDefault();
+                this.refreshDatabase();
+            });
+        }
     }
 
     convertArrayToObject(array, key) {
@@ -48,37 +85,56 @@ class DbUtilities {
         }, {});
     }
 
-    async initDatabase() {
-        this.populateEmptyTables(this.config.stores);
+    async dispatchReadyEvent(data) {
+        let event = new CustomEvent('dbready', { detail: data });
+        document.dispatchEvent(event);
+        console.log('dbready event dispatched');
+    }
+
+    async refreshDatabase() {
+        //should destroy db an reload page
+        let db = window.db;
+        db.delete().then(() => {
+            console.log("Database successfully deleted");
+            window.location.reload();
+        }).catch((err) => {
+            console.error("Could not delete database");
+        });
+    }
+
+    
+
+    async countEmptyTables() {
+        let emptyTables = [];
+        for (let table of this.config.stores) {
+            let count = await this.db[table.name].count();
+            if (count === 0) {
+                emptyTables.push(table);
+            }
+        }
+        return emptyTables;
+    }
+
+    async destroyGauge() {
+        this.gauge.destroy();
     }
 
     async populateEmptyTables(tables) {
         let index = 1;
         for (let table of tables) {
-            //alert('table: ' + table.name);
             await this.syncTable(table.name, table.url);
-            //sleep for 1 second
-            
-            //set gauge value
             let value = Math.round((index / tables.length) * 100) / 100;
-            //value should be 2 decimal places
             value = value.toFixed(2);
-            //alert('value: ' + value);
             this.gauge.update({
                 value: value,
                 valueText: (value * 100) + '%'
             });
-            //alert('value: ' + value);
             await new Promise(resolve => setTimeout(resolve, 600));
             index++;
         }
-        //when done , hide .page-content
-        let pageContent = document.querySelector('.page-content');
-        //remove page-content
-        pageContent.remove();
-        //click on first .tab-link
-        let tabLink = document.querySelector('.tab-link');
-        tabLink.click();
+        await this.destroyGauge();
+        //emit dbready event
+        this.dispatchReadyEvent({});
     }
 
     async syncTable(table , url) {
@@ -95,7 +151,7 @@ class DbUtilities {
         //temp : replace http with https in next url
         url = url.replace('http://', 'https://');
         //replace local in url
-        url = url.replace('{local}', this.local);
+        url = url.replace('{locale}', this.locale);
         let res = await fetch(url);
         let data = await res.json();
         if (data.member.length > 0) {

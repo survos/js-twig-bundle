@@ -44,7 +44,7 @@ Here's an example call to dexie.
                                {{ stimulus_action('app','open_page','click', {
                                    page: 'player',
                                    store: 'items',
-                                   id: row.id
+                                   id: row.code
                                }) }}
                 >
                     <div class="top list-item__top">
