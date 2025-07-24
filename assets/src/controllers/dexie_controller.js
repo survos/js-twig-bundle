@@ -105,7 +105,7 @@ export default class extends Controller {
 
         this.filter = this.filterValue ? JSON.parse(this.filterValue) : false;
         this.store = this.storeValue ? JSON.parse(this.storeValue) : false;
-        console.info("hi from " + this.identifier + ' using dbName: ' + this.dbNameValue + '/' + this.storeValue);
+        // console.info("hi from " + this.identifier + ' using dbName: ' + this.dbNameValue + '/' + this.storeValue);
         // compile the template
 
         let compiledTwigTemplates = {};
@@ -117,7 +117,7 @@ export default class extends Controller {
             });
         }
         this.compiledTwigTemplates = compiledTwigTemplates;
-        console.log("twig templates : ",this.compiledTwigTemplates);
+        // console.log("twig templates : ",this.compiledTwigTemplates);
 
         // the actual jstwig template code, passed into the renderer
         // this should be multiple templates, dispatched as events or populating a target if it exists.
@@ -132,6 +132,8 @@ export default class extends Controller {
             // console.warn(`Listening for ${eventName}`);
             // console.warn("Current content: " + this.contentTarget.innerHTML);
             document.addEventListener(eventName, (e) => {
+                console.warn("event %s fired", eventName);
+                console.log(e.detail);
                 //
                 console.log(window.app);
                 // the data comes from the topPage data
@@ -148,6 +150,7 @@ export default class extends Controller {
                         //console.error("window.app or window.app.views is not defined");
                     }
                     console.log(this.queriesValue);
+
                     this.renderPage(e.detail.id, this.storeValue);
                     //console.warn(html);
 
@@ -163,8 +166,8 @@ export default class extends Controller {
                                 window: window,
                                 storeName: this.storeValue,
                                 globals: this.globalsValue});
-                            console.log("About to insert rendered template into contentTarget");
-                            console.log("contentTarget", this.contentTarget);
+                            // console.log("About to insert rendered template into contentTarget");
+                            // console.log("contentTarget", this.contentTarget);
                             if (this.contentTarget) {
                                 this.contentTarget.innerHTML = x;
                             }
@@ -365,25 +368,25 @@ export default class extends Controller {
     }
 
     // Function to render all string values in an object recursively
-    
-    
+
+
     async renderPage(entityId, store) {
 
         function renderTwigInObject(obj, context) {
             if (typeof obj === 'string') {
                 return Twig.twig({ data: obj }).render(context);
             }
-        
+
             if (Array.isArray(obj)) {
                 return obj.map(item => renderTwigInObject(item, context));
             }
-        
+
             if (typeof obj === 'object' && obj !== null) {
                 return Object.fromEntries(
                     Object.entries(obj).map(([key, val]) => [key, renderTwigInObject(val, context)])
                 );
             }
-        
+
             return obj;
         }
         // console.log(this.appOutlet.tabbarTarget.getActiveIndex());
@@ -394,7 +397,7 @@ export default class extends Controller {
         // console.error("page data", this.appOutlet.navigatorTarget.topPage.data);
         // let key = this.appOutlet.navigatorTarget.topPage.data.id;
         // console.error(this.appOutlet.navigatorTarget.topPage.data, key);
-        
+
         //artist temp area
         //alert(this.compiledTwigTemplates["title"]);
         //alert(JSON.stringify(this.queriesValue));
@@ -412,15 +415,22 @@ export default class extends Controller {
                 continue;
             }
             if (this.compiledTwigTemplates.hasOwnProperty(value.templateName)) {
-                let entity = window.db[value.store];
+                let entityTable = window.db[value.store];
+                let entity = null;
                 console.error("entity", entity);
                 //check if value has filters
                 if (value.hasOwnProperty('filters')) {
                     const renderedFilters = renderTwigInObject(value.filters, entities);
-                    entity = await entity[value.filterType](renderedFilters).toArray();
+                    entity = await entityTable[value.filterType](renderedFilters).toArray();
                 } else {
                     //just get by id for now
-                    entity = await entity.get(entityId);
+                    entity = await entityTable.get(entityId);
+                    if (!entity) {
+                        const entityIdAsInt = parseInt(entityId, 10);
+                        if (!isNaN(entityIdAsInt)) {
+                            entity = await entityTable.get(entityIdAsInt);
+                        }
+                    }
 
                     title = this.compiledTwigTemplates.hasOwnProperty('title')
                     ? this.compiledTwigTemplates["title"].render({
@@ -464,12 +474,15 @@ export default class extends Controller {
                     .finally((e) => console.log("finally rendered page"));
             }
         }
+        //alert(JSON.stringify(title));
         this.appOutlet.setTitle(title);
         //return to prevent old render
         return;
         //
         store = JSON.parse(store);
         let table = window.db["table"](store.name);
+
+
         table = table.get(key);
         table
             .then((data) => {
