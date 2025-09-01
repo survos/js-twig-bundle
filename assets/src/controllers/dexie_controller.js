@@ -423,6 +423,7 @@ export default class extends Controller {
                     const renderedFilters = renderTwigInObject(value.filters, entities);
                     entity = await entityTable[value.filterType](renderedFilters).toArray();
                 } else {
+                    console.assert(entityTable, "Missing entity table for " + value.store);
                     //just get by id for now
                     entity = await entityTable.get(entityId);
                     if (!entity) {

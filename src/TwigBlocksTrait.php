@@ -89,7 +89,7 @@ trait TwigBlocksTrait
                             $extras = $mm[1];
                             $html = $mm[2];
                         } else {
-                            throw new \Exception("Invalid closing for : $id in " . $componentHtml);
+                            throw new \Exception("Invalid closing for : $id in {$this->caller}" . $componentHtml);
                         }
                     } else {
                         $html = $node->html();
