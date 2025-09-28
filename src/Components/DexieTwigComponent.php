@@ -40,10 +40,6 @@ final class DexieTwigComponent extends AsTwigComponent
         return $this->filter;
     }
 
-    public function getStoreName(): ?string
-    {
-        return $this->storeName;
-    }
     public function getStore(): array|object|null
     {
         return $this->store;

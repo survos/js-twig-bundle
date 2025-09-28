@@ -120,6 +120,7 @@ trait TwigBlocksTrait
         return $customColumnTemplates;
     }
 
+    // we could require an interface for this.
     public function getId()
     {
         return $this->id??null;

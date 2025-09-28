@@ -7,13 +7,13 @@
     "license": "MIT",
     "type": "symfony-bundle",
     "require": {
-        "php": "^8.3",
+        "php": "^8.4",
         "symfony/config": "^7.3",
         "symfony/dependency-injection": "^7.3",
         "symfony/http-kernel": "^7.3",
         "twig/twig": "^3.4",
         "symfony/ux-twig-component": "^2.8",
-        "survos/core-bundle": "^1.5",
+        "survos/core-bundle": "^2.0",
         "symfony/dom-crawler": "^7.3"
     },
     "require-dev": {

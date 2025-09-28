@@ -102,7 +102,7 @@ class DbUtilities {
         });
     }
 
-    
+
 
     async countEmptyTables() {
         let emptyTables = [];
@@ -149,6 +149,9 @@ class DbUtilities {
 
     async fetchTable(table, url) {
         //temp : replace http with https in next url
+        if (!url) {
+            return;
+        }
         url = url.replace('http://', 'https://');
         //replace local in url
         url = url.replace('{locale}', this.locale);
