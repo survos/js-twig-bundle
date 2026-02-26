@@ -3,6 +3,44 @@
 
 Wraps https://www.jsdelivr.com/package/npm/twig and https://www.jsdelivr.com/package/npm/dexie in a Symfony UX component and provides utilties for using twig blocks in javascript.
 
+## Simple example (no Dexie)
+
+If you only want to render a Twig block in the browser with Stimulus + twig.js, use the `jsTwig` component/controller pair:
+
+- Component: `src/Components/JsTwigComponent.php`
+- Controller: `assets/src/controllers/js_twig_controller.js`
+
+Example usage:
+
+```twig
+{% set globals = {
+    locale: app.request.locale,
+    isAdmin: is_granted('ROLE_ADMIN')
+} %}
+
+<twig:jsTwig
+    caller="_self"
+    id="museum-card"
+    apiUrl="{{ path('api_objects_show', {id: object.id}) }}"
+    :globals="globals"
+>
+    <twig:block name="content">
+        <article class="card">
+            <h3>{{ data.label }}</h3>
+            <p>Locale: {{ globals.locale }}</p>
+            <a href="{{ path('app_object_show', {id: data.id}) }}">Open</a>
+        </article>
+    </twig:block>
+</twig:jsTwig>
+```
+
+How it works:
+
+1. `JsTwigComponent` collects Twig blocks from the caller template.
+2. `js_twig_controller.js` compiles the `content` block with `Twig.twig(...)`.
+3. The controller fetches JSON from `apiUrl` and renders with `{ data, globals }`.
+4. The rendered HTML replaces the component element.
+
 dexie_controller needs to load a database, as well as fetch individual items and a filtered list.
 
 * Load: /api/pokemon and populate the dexie
@@ -99,5 +137,4 @@ We need this to extract the twig templates from the source file itself.
 ### JSTwg Templates
 
 The templates are defined at application level, they are rendered and then dispatch CustomEvents with the rendered values.  `type` determines what values are passed to the rendering (item, list).
-
 

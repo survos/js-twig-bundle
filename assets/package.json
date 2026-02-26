@@ -26,7 +26,9 @@
     },
     "importmap": {
       "twig": "^1.17.1",
-      "dexie": "^4.0.4"
+      "dexie": "^4.0.4",
+      "@survos/js-twig-bundle/twig_api": "src/lib/twig_api.js",
+      "@survos/js-twig-bundle/twig_blocks": "src/lib/twig_blocks.js"
     }
   },
   "peerDependencies": {

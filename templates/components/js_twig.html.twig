@@ -1,0 +1,18 @@
+{# templates/components/js_twig.html.twig #}
+
+{% set _sc = '@survos/api-grid-bundle/js_twig' %}
+{{ _sc }}
+<div {{ stimulus_controller(_sc, {
+    blocks: this.twigBlocks,
+    apiUrl: this.apiUrl|default(null),
+    data: data|default(false),
+    globals: {
+        isAdmin: is_granted('ROLE_ADMIN')
+    }
+}) }}>
+
+    <div {{ stimulus_target(_sc, 'message') }}>
+        a message here.
+    </div>
+
+</div>
