@@ -49,64 +49,50 @@
 
 import Twig from 'twig';
 
-// ── Debug overlay ────────────────────────────────────────────────────────────
+// ── Debug classes ─────────────────────────────────────────────────────────────
 
 /**
- * Set to true to wrap every twig.js render output with a labelled dashed
- * border so you can see at a glance which parts of the UI are twig-rendered.
+ * When true, twigDebugWrap() stamps two CSS classes onto the outermost element
+ * of every top-level twig.js render:
+ *
+ *   jstwig-block            — present on every twig-rendered element
+ *   jstwig-block-<name>     — specific to the block, e.g. jstwig-block-imageTile
+ *
+ * You can then target them in DevTools or your own stylesheet, e.g.:
+ *
+ *   .jstwig-block { background: rgba(99,102,241,.08); }
+ *   .jstwig-block-imageGrid { outline: 1px solid red; }
+ *
  * Flip to false (or remove) once the migration is complete.
  */
 export const TWIG_DEBUG = true;
 
 /**
- * Wrap rendered HTML with a debug overlay showing the block name.
+ * Stamp jstwig-block classes onto the first element of rendered HTML.
  * No-op when TWIG_DEBUG is false.
  *
  * @param {string} blockName
  * @param {string} html
  * @returns {string}
  */
-// Injected once into <head> when TWIG_DEBUG is first used.
-let _debugStyleInjected = false;
-function _ensureDebugStyle() {
-    if (_debugStyleInjected) return;
-    _debugStyleInjected = true;
-    const s = document.createElement('style');
-    s.textContent = `
-        [data-twig-block] {
-            outline: 2px dashed #6366f1 !important;
-            outline-offset: -2px;
-            position: relative;
-        }
-        [data-twig-block]::before {
-            content: attr(data-twig-block);
-            position: absolute;
-            top: 0; left: 0;
-            background: #6366f1;
-            color: #fff;
-            font: bold 9px/1.4 monospace;
-            padding: 0 4px;
-            z-index: 9999;
-            pointer-events: none;
-            border-bottom-right-radius: 3px;
-            white-space: nowrap;
-        }
-    `;
-    document.head.appendChild(s);
-}
-
 export function twigDebugWrap(blockName, html) {
     if (!TWIG_DEBUG) return html;
-    if (typeof document !== 'undefined') _ensureDebugStyle();
-    // Inject data-twig-block onto the first element's opening tag.
-    // The regex matches the full opening tag, consuming quoted attribute values
-    // (which may contain '>') so we don't stop prematurely at e.g. 'click->action'.
-    //   Group 1: everything up to the final > of the opening tag
-    //   Group 2: the closing > or />
-    const tagRe = /^(\s*<\w+(?:\s+(?:[a-zA-Z_:][^\s"'>\/=]*(?:\s*=\s*(?:"[^"]*"|'[^']*'|[^\s"'`=<>]+))?))*)(\s*\/?>)/;
-    return html.replace(tagRe, (_, open, close) => {
-        if (open.includes('data-twig-block')) return open + close; // nested — outermost wins
-        return `${open} data-twig-block="${blockName}"${close}`;
+
+    const slugName = blockName.replace(/[^a-zA-Z0-9_-]/g, '-');
+    const newClasses = `jstwig-block jstwig-block-${slugName}`;
+
+    // Match the opening tag of the first element, handling quoted attribute
+    // values that may contain '>' (e.g. data-action="click->ctrl#action").
+    const tagRe = /^(\s*<\w+)((?:\s+(?:[a-zA-Z_:][^\s"'>\/=]*(?:\s*=\s*(?:"[^"]*"|'[^']*'|[^\s"'`=<>]+))?))*)/;
+    return html.replace(tagRe, (_, tag, attrs) => {
+        // Append to an existing class="..." value, or add a new class attribute.
+        if (/\bclass\s*=\s*"/.test(attrs)) {
+            return tag + attrs.replace(/\bclass\s*=\s*"/, `class="${newClasses} `);
+        }
+        if (/\bclass\s*=\s*'/.test(attrs)) {
+            return tag + attrs.replace(/\bclass\s*=\s*'/, `class='${newClasses} `);
+        }
+        return tag + attrs + ` class="${newClasses}"`;
     });
 }
 
@@ -145,8 +131,10 @@ export function installTwigAPI({ Routing = null, StimAttrs, blockRegistry = {} }
                 return `<div class="alert alert-warning p-1 small font-monospace">[twig] block not found: ${blockName}</div>`;
             }
             try {
-                const html = tpl.render({ ...vars, _keys: null });
-                return twigDebugWrap(blockName, html);
+                // No twigDebugWrap here — debug labels are applied only by twigRender()
+                // (the top-level JS entry point) so nested render() calls don't produce
+                // labels that visually obscure their parent block's label.
+                return tpl.render({ ...vars, _keys: null });
             } catch (e) {
                 console.error(`[twig_api] render('${blockName}') error:`, e);
                 return `<div class="alert alert-danger p-1 small font-monospace">[twig render error] ${blockName}: ${e.message ?? String(e)}</div>`;
