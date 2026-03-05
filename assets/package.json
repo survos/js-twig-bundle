@@ -13,7 +13,7 @@
         "autoimport": {
         }
       },
-      "jstwig": {
+      "js_twig": {
           "main": "src/controllers/js_twig_controller.js",
           "webpackMode": "eager",
           "fetch": "lazy",
