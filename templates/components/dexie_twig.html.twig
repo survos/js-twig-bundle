@@ -2,6 +2,13 @@
 
 {% set tableUrls = this.tableUrls|length ? this.tableUrls : {} %}
 
+<script type="application/json" id="{{ this.jsTwigScriptTagId }}" data-jstwig-role="blocks">
+    {{ this.twigTemplates|json_encode|raw }}
+</script>
+<script type="application/json" data-jstwig-role="manifest" data-jstwig-id="{{ this.jsTwigScriptTagId }}">
+    {{ this.jsTwigManifest|json_encode|raw }}
+</script>
+
 {#  @todo: move to ons-dexie bridge #}
 {#templateId: this.templateId,#}
 {#templateType: this.type,#}
@@ -19,6 +26,7 @@
             version: this.version,
             store: this.store,
             caller: this.caller,
+            scriptTagId: this.jsTwigScriptTagId,
             initDb: this.initDb,
             queries : this.queries,
         },
@@ -36,3 +44,5 @@
     <!-- component html {{ _self }}-->
 
 </div>
+
+{{ jstwig_debug_panel() }}

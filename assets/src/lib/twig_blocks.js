@@ -1,133 +1,159 @@
-/**
- * @survos/js-twig-bundle — twig_blocks.js
- *
- * Reusable helpers for compiling and rendering named twig.js block registries.
- *
- * The contract between PHP and JS:
- *   - PHP (ShowPagesComponent / any TwigBlocksInterface component) emits a
- *     <script type="application/json" id="<scriptTagId>"> tag whose text content
- *     is a JSON object mapping block name → raw Twig source string.
- *   - compileTwigBlocks() reads that tag, compiles each source with twig.js, and
- *     stores the compiled templates in the provided registry object.
- *   - twigRender() looks up a compiled template and renders it, surfacing any
- *     error as a visible inline alert rather than swallowing it silently.
- *
- * Usage in a Stimulus controller:
- *
- *   import { compileTwigBlocks, twigRender } from '@survos/js-twig-bundle/twig_blocks';
- *   import { installTwigAPI } from '@survos/js-twig-bundle/twig_api';
- *
- *   connect() {
- *     this._tpl = {};
- *     // installTwigAPI must receive the registry reference BEFORE compileTwigBlocks
- *     // fills it, so render() can resolve blocks at call time.
- *     installTwigAPI({ Routing, StimAttrs, blockRegistry: this._tpl });
- *     compileTwigBlocks(this._tpl, 'show-pages-blocks');
- *   }
- *
- *   // Render a block — always returns a string (error banner on failure).
- *   someTarget.innerHTML = twigRender(this._tpl, 'thumbList', { images });
- *
- * Nesting / composition:
- *   Once installTwigAPI has been called with blockRegistry: this._tpl, any
- *   twig block can call sibling blocks via the render() twig function:
- *
- *   {# thumbList block #}
- *   {% for img in images %}{{ render('thumbTile', {img: img}) }}{% endfor %}
- *
- *   {# thumbTile block #}
- *   <div class="ss-img-tile">
- *     {{ render('imageThumbnail', {img: img}) }}
- *     <div class="ss-footer">{{ img.orderIdx }}</div>
- *   </div>
- */
+import { getRegistryEngine, twigDebugWrap } from './twig_api.js';
 
-import Twig from 'twig';
-import { twigDebugWrap } from './twig_api.js';
+const DEBUG_STORE_KEY = '__jstwigRuntimeDebug';
 
-/**
- * Read the block JSON from a <script type="application/json"> tag, compile
- * each block with twig.js, and store the results in `registry`.
- *
- * Compile errors are stored under `registry.__errors__[blockName]` so
- * twigRender() can surface them visibly without re-parsing.
- *
- * @param {object} registry     Plain object to populate (passed by reference).
- * @param {string} scriptTagId  id= of the <script> tag emitted by the PHP component.
- *                              Defaults to 'show-pages-blocks'.
- * @returns {object}  The same registry object (for chaining / inspection).
- */
+function getDebugStore() {
+    const store = globalThis[DEBUG_STORE_KEY] ?? {
+        compiledRegistries: {},
+        usedBlocks: [],
+        compileErrors: {},
+    };
+    globalThis[DEBUG_STORE_KEY] = store;
+
+    if (typeof globalThis.__jstwigDebugSnapshot !== 'function') {
+        globalThis.__jstwigDebugSnapshot = () => ({
+            compiledRegistries: { ...store.compiledRegistries },
+            usedBlocks: [...store.usedBlocks],
+            compileErrors: { ...store.compileErrors },
+        });
+    }
+
+    if (typeof globalThis.__jstwigRegistryReport !== 'function') {
+        globalThis.__jstwigRegistryReport = (scriptTagId = 'show-pages-blocks') => {
+            const reg = store.compiledRegistries[scriptTagId] ?? null;
+            const errs = store.compileErrors[scriptTagId] ?? {};
+            const statuses = (reg?.blockNames ?? []).map((name) => ({
+                name,
+                status: errs[name] ? 'compile_error' : 'compiled',
+                error: errs[name]?.message ?? null,
+            }));
+
+            return {
+                scriptTagId,
+                compiledAt: reg?.compiledAt ?? null,
+                blockCount: statuses.length,
+                statuses,
+                manifest: reg?.manifest ?? null,
+            };
+        };
+    }
+
+    return store;
+}
+
+function esc(value) {
+    return String(value ?? '')
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;');
+}
+
 export function compileTwigBlocks(registry, scriptTagId = 'show-pages-blocks') {
+    const debugStore = getDebugStore();
     registry.__errors__ = registry.__errors__ ?? {};
+    registry.__sources__ = registry.__sources__ ?? {};
+    registry.__payloads__ = registry.__payloads__ ?? {};
+    registry.__meta__ = {
+        ...(registry.__meta__ ?? {}),
+        scriptTagId,
+    };
 
     const el = document.getElementById(scriptTagId);
     if (!el) {
-        console.warn(`[twig_blocks] <script id="${scriptTagId}"> not found — no blocks compiled`);
+        console.warn(`[twig_blocks] <script id="${scriptTagId}"> not found.`);
         return registry;
     }
 
     let blocks;
     try {
-        blocks = JSON.parse(el.textContent);
-    } catch (e) {
-        console.error(`[twig_blocks] failed to parse JSON from #${scriptTagId}:`, e);
+        blocks = JSON.parse(el.textContent ?? '{}');
+    } catch (error) {
+        console.error(`[twig_blocks] failed to parse JSON from #${scriptTagId}`, error);
         return registry;
     }
 
-    for (const [name, source] of Object.entries(blocks)) {
-        const src = typeof source === 'string' ? source : (source.html ?? '');
+    const engine = getRegistryEngine(registry);
+    const blockNames = Object.keys(blocks);
+    registry.__meta__.blockNames = blockNames;
+    debugStore.compileErrors[scriptTagId] = {};
+
+    for (const [name, payload] of Object.entries(blocks)) {
+        const src = typeof payload === 'string' ? payload : (payload?.html ?? '');
+        registry.__sources__[name] = src;
+        registry.__payloads__[name] = payload;
+
         try {
-            registry[name] = Twig.twig({ data: src, rethrow: true });
-        } catch (e) {
-            console.error(`[twig_blocks] compile error in block "${name}":`, e);
-            registry.__errors__[name] = e.message ?? String(e);
+            engine.compileBlock(name, src);
+        } catch (error) {
+            const message = error?.message ?? String(error);
+            registry.__errors__[name] = {
+                message,
+                scriptTagId,
+            };
+            debugStore.compileErrors[scriptTagId][name] = {
+                message,
+                sourceSnippet: src.slice(0, 240),
+            };
         }
     }
+
+    const compileErrors = debugStore.compileErrors[scriptTagId];
+    const failedNames = Object.keys(compileErrors);
+    if (failedNames.length > 0) {
+        console.error(`[twig_blocks] compile errors in #${scriptTagId}`, {
+            scriptTagId,
+            failedNames,
+            compileErrors,
+        });
+    }
+
+    const manifestTag = document.querySelector(`[data-jstwig-role="manifest"][data-jstwig-id="${scriptTagId}"]`);
+    let manifest = null;
+    if (manifestTag?.textContent) {
+        try {
+            manifest = JSON.parse(manifestTag.textContent);
+        } catch {
+            manifest = null;
+        }
+    }
+
+    debugStore.compiledRegistries[scriptTagId] = {
+        scriptTagId,
+        blockNames,
+        manifest,
+        compiledAt: new Date().toISOString(),
+    };
 
     return registry;
 }
 
-/**
- * Render a named block from the registry with the given data.
- * Always returns a string — errors surface as visible inline alerts.
- *
- * @param {object} registry   Populated by compileTwigBlocks().
- * @param {string} blockName  Key in the registry.
- * @param {object} data       Variables passed to the template.
- * @returns {string}          Rendered HTML (or an error banner).
- */
 export function twigRender(registry, blockName, data = {}) {
-    // Compile-time error recorded earlier
-    if (registry.__errors__?.[blockName]) {
-        return `<div class="alert alert-danger p-1 small font-monospace">` +
-            `[twig compile error] ${_esc(blockName)}: ${_esc(registry.__errors__[blockName])}` +
-            `</div>`;
-    }
+    const debugStore = getDebugStore();
+    const caller = data?.caller ?? data?.globals?.caller ?? null;
+    const scriptTagId = registry.__meta__?.scriptTagId ?? 'unknown-script';
 
-    const tpl = registry[blockName];
-    if (!tpl || typeof tpl.render !== 'function') {
-        return `<div class="alert alert-warning p-1 small font-monospace">` +
-            `[twig] block not found: ${_esc(blockName)}` +
-            `</div>`;
+    if (registry.__errors__?.[blockName]) {
+        const message = registry.__errors__[blockName]?.message ?? 'compile error';
+        debugStore.usedBlocks.push({ scriptTagId, blockName, caller, status: 'compile_error', at: new Date().toISOString() });
+        return `<div class="alert alert-danger p-1 small font-monospace">[twig compile error] ${esc(blockName)} @ #${esc(scriptTagId)}: ${esc(message)}</div>`;
     }
 
     try {
-        const html = tpl.render({ ...data, _keys: null });
+        const engine = getRegistryEngine(registry);
+        const html = engine.renderBlock(blockName, data);
+        debugStore.usedBlocks.push({ scriptTagId, blockName, caller, status: 'ok', at: new Date().toISOString() });
         return twigDebugWrap(blockName, html);
-    } catch (e) {
-        console.error(`[twig_blocks] render error in block "${blockName}":`, e);
-        return `<div class="alert alert-danger p-1 small font-monospace">` +
-            `[twig render error] ${_esc(blockName)}: ${_esc(e.message ?? String(e))}` +
-            `</div>`;
+    } catch (error) {
+        debugStore.usedBlocks.push({
+            scriptTagId,
+            blockName,
+            caller,
+            status: 'render_error',
+            error: error?.message ?? String(error),
+            at: new Date().toISOString(),
+        });
+
+        return `<div class="alert alert-danger p-1 small font-monospace">[twig render error] ${esc(blockName)} @ #${esc(scriptTagId)}: ${esc(error?.message ?? String(error))}</div>`;
     }
-}
-
-// ── Internal helpers ─────────────────────────────────────────────────────────
-
-function _esc(str) {
-    return String(str ?? '')
-        .replace(/&/g, '&amp;')
-        .replace(/</g, '&lt;')
-        .replace(/>/g, '&gt;')
-        .replace(/"/g, '&quot;');
 }

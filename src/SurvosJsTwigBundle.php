@@ -5,6 +5,8 @@ namespace Survos\JsTwigBundle;
 use Survos\CoreBundle\Traits\HasAssetMapperTrait;
 use Survos\JsTwigBundle\Components\DexieTwigComponent;
 use Survos\JsTwigBundle\Components\JsTwigComponent;
+use Survos\JsTwigBundle\Debug\JsTwigManifestRegistry;
+use Survos\JsTwigBundle\Twig\TwigExtension;
 use Symfony\Component\Config\Definition\Configurator\DefinitionConfigurator;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
 use Symfony\Component\DependencyInjection\ContainerInterface;
@@ -18,19 +20,31 @@ class SurvosJsTwigBundle extends AbstractBundle
 
     public function loadExtension(array $config, ContainerConfigurator $container, ContainerBuilder $builder): void
     {
+        $builder->register(JsTwigManifestRegistry::class)
+            ->setAutowired(true)
+            ->setAutoconfigured(true);
 
         $builder->register(JsTwigComponent::class)
             ->setAutowired(true)
             ->setAutoconfigured(true)
             ->setArgument('$twig', new Reference('twig'))
-            ->setArgument('$logger', new Reference('logger', ContainerInterface::NULL_ON_INVALID_REFERENCE));
+            ->setArgument('$logger', new Reference('logger', ContainerInterface::NULL_ON_INVALID_REFERENCE))
+            ->setArgument('$jsTwigManifestRegistry', new Reference(JsTwigManifestRegistry::class));
 
         $builder->register(DexieTwigComponent::class)
             ->setAutowired(true)
             ->setAutoconfigured(true)
             ->setArgument('$config', $config)
             ->setArgument('$twig', new Reference('twig'))
-            ->setArgument('$logger', new Reference('logger', ContainerInterface::NULL_ON_INVALID_REFERENCE));
+            ->setArgument('$logger', new Reference('logger', ContainerInterface::NULL_ON_INVALID_REFERENCE))
+            ->setArgument('$jsTwigManifestRegistry', new Reference(JsTwigManifestRegistry::class));
+
+        $builder->register(TwigExtension::class)
+            ->setAutowired(true)
+            ->setAutoconfigured(true)
+            ->setArgument('$config', $config)
+            ->setArgument('$registry', new Reference(JsTwigManifestRegistry::class))
+            ->addTag('twig.extension');
 
     }
 

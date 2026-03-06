@@ -4,6 +4,7 @@
 namespace Survos\JsTwigBundle\Components;
 
 use Psr\Log\LoggerInterface;
+use Survos\JsTwigBundle\Debug\JsTwigManifestRegistry;
 use Survos\JsTwigBundle\TwigBlocksInterface;
 use Survos\JsTwigBundle\TwigBlocksTrait;
 use Symfony\UX\TwigComponent\Attribute\AsTwigComponent;
@@ -16,12 +17,12 @@ class JsTwigComponent implements TwigBlocksInterface
 
     public string $caller;
     public string $apiUrl;
-    public string $id; // for parsing out the twig blocks
     public function __construct(
         private Environment $twig,
         private LoggerInterface $logger,
+        JsTwigManifestRegistry $jsTwigManifestRegistry,
     ) {
-        dump($this);
+        $this->jsTwigManifestRegistry = $jsTwigManifestRegistry;
         //        ='@survos/grid-bundle/api_grid';
     }
 

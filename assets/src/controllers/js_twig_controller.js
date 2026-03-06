@@ -1,73 +1,96 @@
-import {Controller} from "@hotwired/stimulus";
-import Routing from 'fos-routing';
-import RoutingData from '/js/fos_js_routes.js';
-import Twig from 'twig';
+import { Controller } from '@hotwired/stimulus';
+import * as StimAttrs from 'stimulus-attributes';
+import { installTwigAPI } from '../lib/twig_api.js';
+import { compileTwigBlocks, twigRender } from '../lib/twig_blocks.js';
 
-Routing.setData(RoutingData);
+let Routing = null;
+try {
+    const mod = await import('fos-routing');
+    Routing = mod.default;
 
-Twig.extend(function (Twig) {
-    Twig._function.extend('path', (route, routeParams={}) => {
-        // console.error(routeParams);
-        delete routeParams._keys; // seems to be added by twigjs
-        return Routing.generate(route, routeParams);
-    });
-});
+    let routingLoaded = false;
+    try {
+        const response = await fetch('/js/fos_js_routes.json', {
+            headers: { Accept: 'application/json' },
+        });
+        if (response.ok) {
+            Routing.setData(await response.json());
+            routingLoaded = true;
+        }
+    } catch {
+        routingLoaded = false;
+    }
 
-console.assert(Routing, 'Routing is not defined');
+    if (!routingLoaded) {
+        const data = await import('/js/fos_js_routes.js');
+        Routing.setData(data.default);
+    }
+} catch {
+    // optional in non-Symfony/FOS contexts
+}
+
 /* stimulusFetch: 'lazy' */
 export default class extends Controller {
     static targets = ['message'];
+
     static values = {
-        blocks: {type: Object },
-        data: {type: String, default: '{}'},
-        globals: {type: String, default: '{}'},
-        apiUrl: {type: String, default: ''},
-        searchPanesDataUrl: {type: String, default: ''},
-    }
+        blocks: { type: Object, default: {} },
+        data: { type: String, default: '{}' },
+        globals: { type: String, default: '{}' },
+        apiUrl: { type: String, default: '' },
+        searchPanesDataUrl: { type: String, default: '' },
+        scriptTagId: { type: String, default: '' },
+    };
 
     connect() {
-        // console.log("Hello from " + this.identifier);
-        this.render()
+        this._tpl = {};
+        installTwigAPI({ Routing, StimAttrs, blockRegistry: this._tpl });
+
+        if (this.scriptTagIdValue) {
+            compileTwigBlocks(this._tpl, this.scriptTagIdValue);
+        }
+
+        this.render();
     }
 
     async fetchItem() {
-        console.warn(this.apiUrlValue);
-        const response = await fetch(this.apiUrlValue);
-
-        if (!response.ok) {
-            const message = `An error has occured: ${response.status}`;
-            throw new Error(message);
+        if (!this.apiUrlValue) {
+            return JSON.parse(this.dataValue || '{}');
         }
 
-        const item = await response.json();
-        return item;
+        const response = await fetch(this.apiUrlValue);
+        if (!response.ok) {
+            throw new Error(`An error has occurred: ${response.status}`);
+        }
+
+        return response.json();
     }
 
+    async render() {
+        const globals = JSON.parse(this.globalsValue || '{}');
+        const item = await this.fetchItem();
 
-
-
-    render() {
-        let template = Twig.twig({
-            data: this.blocksValue.content
+        const blockName = this.pickDefaultBlockName();
+        const html = twigRender(this._tpl, blockName, {
+            data: item,
+            row: item,
+            globals,
+            caller: this.identifier,
         });
-        let globals = JSON.parse(this.globalsValue);
 
-        this.fetchItem().then((item) => {
-            let params = {data: item, globals: globals};
-            params._keys = null;
-            // console.error(params);
-            let html = template.render(params);
-            this.element.innerHTML = html;
-        })
-
-
-        // Object.assign(row, );
-        // row.locale = this.localeValue;
-
-        // let data = {'title': 'A title', 'code': 'codigo'};
-        // data = fetch()
-        // let data = JSON.parse(this.dataValue);
+        this.element.innerHTML = html;
     }
 
+    pickDefaultBlockName() {
+        const names = Object.keys(this._tpl).filter((name) => !name.startsWith('__'));
+        if (names.length === 0) {
+            throw new Error(`No Twig blocks compiled for scriptTagId='${this.scriptTagIdValue}'.`);
+        }
 
+        if (names.includes('content')) {
+            return 'content';
+        }
+
+        return names[0];
+    }
 }

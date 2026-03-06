@@ -18,13 +18,37 @@ import Twig from "twig";
 import Dexie from "dexie";
 import {stimulus_action, stimulus_controller, stimulus_target,} from "stimulus-attributes";
 
-// @todo: fail gracefully if these files don't exist.
-import Routing from 'fos-routing';
-import RoutingData from '/js/fos_js_routes.js';
+let Routing = null;
+try {
+    const mod = await import('fos-routing');
+    Routing = mod.default;
+
+    let routingLoaded = false;
+    try {
+        const response = await fetch('/js/fos_js_routes.json', {
+            headers: { Accept: 'application/json' },
+        });
+        if (response.ok) {
+            Routing.setData(await response.json());
+            routingLoaded = true;
+        }
+    } catch {
+        routingLoaded = false;
+    }
+
+    if (!routingLoaded) {
+        const data = await import('/js/fos_js_routes.js');
+        Routing.setData(data.default);
+    }
+} catch {
+    Routing = null;
+}
 
 import { DbUtilities } from "../lib/dexieDatabase.js";
 
-Routing.setData(RoutingData);
+if (!Routing) {
+    console.warn('[js-twig/dexie] FOS routing is unavailable, path() calls may fail.');
+}
 
 Twig.extend(function (Twig) {
     Twig._function.extend(
@@ -51,6 +75,9 @@ Twig.extend(function (Twig) {
             stimulus_action(controllerName, r, n, a)
     );
     Twig._function.extend('path', (route, routeParams = {}) => {
+        if (!Routing?.generate) {
+            throw new Error(`Routing is unavailable for path('${route}')`);
+        }
         delete routeParams._keys; // seems to be added by twigjs
         return Routing.generate(route, routeParams);
     });

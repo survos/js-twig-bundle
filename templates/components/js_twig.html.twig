@@ -1,9 +1,16 @@
 {# templates/components/js_twig.html.twig #}
 
 {% set _sc = '@survos/js-twig-bundle/js_twig' %}
-{{ _sc }}
+<script type="application/json" id="{{ this.jsTwigScriptTagId }}" data-jstwig-role="blocks">
+    {{ this.twigBlocks|json_encode|raw }}
+</script>
+<script type="application/json" data-jstwig-role="manifest" data-jstwig-id="{{ this.jsTwigScriptTagId }}">
+    {{ this.jsTwigManifest|json_encode|raw }}
+</script>
+
 <div {{ stimulus_controller(_sc, {
     blocks: this.twigBlocks,
+    scriptTagId: this.jsTwigScriptTagId,
     apiUrl: this.apiUrl|default(null),
     data: data|default(false),
     globals: {
@@ -16,3 +23,5 @@
     </div>
 
 </div>
+
+{{ jstwig_debug_panel() }}

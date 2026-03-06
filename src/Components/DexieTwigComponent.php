@@ -3,6 +3,7 @@
 namespace Survos\JsTwigBundle\Components;
 
 use Psr\Log\LoggerInterface;
+use Survos\JsTwigBundle\Debug\JsTwigManifestRegistry;
 use Survos\JsTwigBundle\TwigBlocksTrait;
 use Symfony\Component\OptionsResolver\OptionsResolver;
 use Symfony\UX\TwigComponent\Attribute\AsTwigComponent;
@@ -29,7 +30,9 @@ final class DexieTwigComponent extends AsTwigComponent
         private Environment $twig,
         private LoggerInterface $logger,
         private array $config=[], // this is the config defined in survos_js_twig.yaml
+        JsTwigManifestRegistry $jsTwigManifestRegistry,
     ) {
+        $this->jsTwigManifestRegistry = $jsTwigManifestRegistry;
 
         //        ='@survos/grid-bundle/api_grid';
     }

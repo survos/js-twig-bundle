@@ -2,12 +2,15 @@
 
 namespace Survos\JsTwigBundle;
 
+use Survos\JsTwigBundle\Debug\JsTwigManifestRegistry;
 use Symfony\Component\DomCrawler\Crawler;
 
 trait TwigBlocksTrait
 {
 
     public string $caller;
+    public ?string $id = null;
+    protected ?JsTwigManifestRegistry $jsTwigManifestRegistry = null;
     // must inject twig!
 
     public function getTwigSource()
@@ -118,6 +121,45 @@ trait TwigBlocksTrait
         }
 
         return $customColumnTemplates;
+    }
+
+    public function getJsTwigScriptTagId(): string
+    {
+        if ($this->id) {
+            return $this->id;
+        }
+
+        return 'jstwig-' . substr(md5((string) $this->caller), 0, 10);
+    }
+
+    public function getJsTwigManifest(): array
+    {
+        $blocks = $this->getTwigBlocks();
+        $names = array_keys($blocks);
+        sort($names);
+
+        $slots = [];
+        foreach ($names as $name) {
+            $slots[] = [
+                'name' => $name,
+                'sourceHash' => substr(sha1((string) ($blocks[$name]['html'] ?? '')), 0, 12),
+                'wrapper' => $blocks[$name]['wrapper'] ?? null,
+            ];
+        }
+
+        $manifest = [
+            'manifestId' => $this->getJsTwigScriptTagId(),
+            'caller' => $this->caller,
+            'generatedAt' => (new \DateTimeImmutable())->format(DATE_ATOM),
+            'blockCount' => count($names),
+            'slots' => $slots,
+        ];
+
+        if ($this->jsTwigManifestRegistry instanceof JsTwigManifestRegistry) {
+            $this->jsTwigManifestRegistry->register($this->getJsTwigScriptTagId(), $manifest);
+        }
+
+        return $manifest;
     }
 
     // we could require an interface for this.

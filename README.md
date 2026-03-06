@@ -1,140 +1,133 @@
 # JS Twig Bundle
 
+Render Twig-like blocks in the browser from Stimulus controllers.
 
-Wraps https://www.jsdelivr.com/package/npm/twig and https://www.jsdelivr.com/package/npm/dexie in a Symfony UX component and provides utilties for using twig blocks in javascript.
+This bundle provides:
+- A Symfony UX/TwigComponent bridge that extracts `<twig:block>` templates from Twig files.
+- A browser-side twig.js API with Symfony-friendly helpers (`path`, `stimulus_*`, `ux_icon`, `render`).
+- A block compiler/renderer utility for rendering a specific named block (for example a grid cell template in `api-grid-bundle`).
+- A per-request manifest registry (block names + source hashes) for debug/discovery.
+- An optional Dexie-based data/rendering pipeline.
 
-## Simple example (no Dexie)
+## Why this exists
 
-If you only want to render a Twig block in the browser with Stimulus + twig.js, use the `jsTwig` component/controller pair:
+Server-rendered Twig is still the source of truth for markup, but some UI pieces need to be rendered client-side after async data is loaded. The primary use case is:
+- define block templates in Twig
+- pass those templates to JavaScript
+- render specific blocks on demand from a Stimulus controller
 
-- Component: `src/Components/JsTwigComponent.php`
-- Controller: `assets/src/controllers/js_twig_controller.js`
+## Current modules
 
-Example usage:
+- `assets/src/lib/twig_api.js`: installs Twig functions used by client-side templates.
+- `assets/src/lib/twig_blocks.js`: compiles/renders named block registries.
+- `src/TwigBlocksTrait.php`: extracts `<twig:block>` content from a caller template.
+- `src/Components/JsTwigComponent.php` + `assets/src/controllers/js_twig_controller.js`: legacy UX component/controller path.
+- `src/Components/DexieTwigComponent.php` + `assets/src/controllers/dexie_controller.js`: Dexie integration path.
 
-```twig
-{% set globals = {
-    locale: app.request.locale,
-    isAdmin: is_granted('ROLE_ADMIN')
-} %}
+## Recommended path for new work
 
-<twig:jsTwig
-    caller="_self"
-    id="museum-card"
-    apiUrl="{{ path('api_objects_show', {id: object.id}) }}"
-    :globals="globals"
->
-    <twig:block name="content">
-        <article class="card">
-            <h3>{{ data.label }}</h3>
-            <p>Locale: {{ globals.locale }}</p>
-            <a href="{{ path('app_object_show', {id: data.id}) }}">Open</a>
-        </article>
-    </twig:block>
-</twig:jsTwig>
-```
+For reusable rendering (for example, "render one cell block in a Stimulus grid controller"), prefer the library API:
+- `installTwigAPI(...)`
+- `compileTwigBlocks(registry, scriptTagId)`
+- `twigRender(registry, blockName, data)`
 
-How it works:
+This is more composable than hard-coding rendering logic in a single controller.
 
-1. `JsTwigComponent` collects Twig blocks from the caller template.
-2. `js_twig_controller.js` compiles the `content` block with `Twig.twig(...)`.
-3. The controller fetches JSON from `apiUrl` and renders with `{ data, globals }`.
-4. The rendered HTML replaces the component element.
+## Manifest + runtime debug
 
-dexie_controller needs to load a database, as well as fetch individual items and a filtered list.
+The bundle now emits two debug layers:
 
-* Load: /api/pokemon and populate the dexie
+- **Server manifest registry** (per request): each component contributes a manifest id, caller template, slot names, and source hashes.
+- **Runtime usage tracking** (browser): compiled registries and rendered block slots are captured in `window.__jstwigDebugSnapshot()`.
 
-When rendering a template, it listens for an event (the tab or page load event), and needs to grab the data before passing it to the renderer.  For example:
-
-* items: get all the items from a list
-* saved: get items with the saved property as true
-* item: look up an item by id
-
-Of course, dexie itself doesn't know about pokemon, it only knows that there is a database.  Currently to get things like the filter, it calls app_controller (via an outlet).   This is overly complicated, all of the outlet calls should be replaced with simple CustomEvents, which app_controller (or some other javascript) can listen to.
-
-# Brainstorming
-
-## Load the database
-
-when dexie controller is called, it receives a database name and a filter _for loading_.  (We will later need a dynamic filter for displaying).
-This needs to be `sync` with an event emitted so that a loader can display a progress bar (at the app level).
-
-## Displaying a list
-
-Here's an example call to dexie.
-
-@todo: rename templates, e.g. list_template, item_template, header_template
+To show an on-page debug panel, enable bundle debug config and render:
 
 ```twig
-    <twig:dexie
-        refreshEvent="items.prechange"
-        type: 'list'
-        :store="store"
-        :globals="globals"
-        :filter="{}"
-        :caller="_self">
-        <twig:block name="twig_template" id="end_of_template">
-            <ons-list>
-                {% for row in rows %}
-                {% set thumb = '/media/cache/small/%s/%s'|format(row.code, row.image) %}
-                <ons-list-item class="list-item" tappable
-                               {{ stimulus_action('app','open_page','click', {
-                                   page: 'player',
-                                   store: 'items',
-                                   id: row.code
-                               }) }}
-                >
-                    <div class="top list-item__top">
-                        <div class="left list-item__left">
-                            <img
-                                    class="ons-mobile-thumbnail" src="{{ thumb }}"
-                                 alt="{{ thumb }}"/>
-                        </div>
-                        <div class="xcenter xlist-item__center">
-                                <h3>
-                                    {{ row.label }}
-                                </h3>
-                            <div style="margin: 4px">
-                            {{ row.size }}
-
-                            </div>
-                        </div>
-                        <div class="right list-item__right">
-                            {{ row.year }}
-                            <br />
-                            ${{ row.price|number_format(0, ",", ".") }}
-                        </div>
-                    </div>
-                </ons-list-item>
-                {% endfor %}
-            </ons-list>
-            <!-- end_of_template -->
-        </twig:block>
-
-    </twig:dexie>
+{{ jstwig_debug_panel() }}
 ```
 
-### Properties
-        refreshEvent="items.prechange"
-listen for this event to fire the controller
+The panel shows:
 
-        type: 'list'
-The type determines which twig templates are called and what filters are applied.
+- server manifest registry
+- compiled registries on current page
+- block slots rendered on current page
 
-        :store="store"
-The name of the database, as defined in survos_js_twig.yaml
+### 1) Emit blocks JSON from Twig
 
-        :globals="globals"
-We can pass globals to the renderer, like icons and other values that can't be rendered directly because it's jstwig, not twig.
+Use a script tag that contains a JSON object `blockName -> template string`.
 
-        :filter="{}"
-The filter for loading the database (not the dynamic display)
+```twig
+{# Example: include this near the Stimulus root element #}
+<script type="application/json" id="api-grid-cell-blocks" data-caller="{{ _self }}">
+    {{ this.twigBlocks|json_encode|raw }}
+</script>
+```
 
-        :caller="_self"
-We need this to extract the twig templates from the source file itself.
+`this.twigBlocks` comes from `TwigBlocksTrait` in a TwigComponent.
 
-### JSTwg Templates
+### 2) Compile and render in a Stimulus controller
 
-The templates are defined at application level, they are rendered and then dispatch CustomEvents with the rendered values.  `type` determines what values are passed to the rendering (item, list).
+```js
+import { Controller } from '@hotwired/stimulus';
+import * as StimAttrs from 'stimulus-attributes';
+import { installTwigAPI } from '@survos/js-twig-bundle/twig_api';
+import { compileTwigBlocks, twigRender } from '@survos/js-twig-bundle/twig_blocks';
 
+export default class extends Controller {
+  connect() {
+    this.tpl = {};
+    installTwigAPI({ StimAttrs, blockRegistry: this.tpl });
+    compileTwigBlocks(this.tpl, 'api-grid-cell-blocks');
+  }
+
+  renderCell(row) {
+    return twigRender(this.tpl, 'cell', { data: row, globals: { locale: 'en' } });
+  }
+}
+```
+
+### 3) Define blocks in Twig
+
+```twig
+<twig:block name="cell">
+    <span class="cell-label">{{ data.label }}</span>
+</twig:block>
+```
+
+## Legacy `jsTwig` component usage
+
+The bundle still ships `<twig:jsTwig>` and `js_twig_controller.js` for direct fetch-and-render flows, but new integrations should prefer the reusable block registry approach above.
+
+## Twig functions available in browser templates
+
+After `installTwigAPI(...)`, twig.js templates can call:
+- `path(route, params)`
+- `render(blockName, vars)`
+- `stimulus_controller(name, values, classes, outlets)`
+- `stimulus_target(name, target)`
+- `stimulus_action(name, action, event, params)`
+- `ux_icon(name, attrs)`
+- `sais_encode(url)`
+
+See `assets/src/lib/twig_api.js` for behavior and fallbacks.
+
+## Dexie integration (optional)
+
+`<twig:dexie>` and `dexie_controller.js` support loading data into Dexie and rendering list/detail blocks. This is useful for offline/mobile-like patterns, but has a larger API surface and more coupling than the block registry flow.
+
+If your goal is only "render Twig blocks from Stimulus", you usually do not need Dexie.
+
+## Configuration (Dexie path)
+
+Bundle configuration keys are defined in `src/SurvosJsTwigBundle.php`:
+- `db`
+- `version`
+- `stores[]` with `name`, `schema`, `url`, `batch`, `response_key`
+
+## AI/Human docs map
+
+- `README.md`: entry point and quick usage.
+- `docs/ARCHITECTURE.md`: internal contracts and data flow.
+- `docs/AI_AGENT_GUIDE.md`: implementation conventions for contributors/agents.
+- `docs/IMPROVEMENTS.md`: prioritized code improvements.
+- `docs/EVENT_DRIVEN_EXAMPLE.md`: real-world event-driven rendering pattern.
