@@ -27,8 +27,8 @@
     "importmap": {
       "twig": "^1.17.1",
       "dexie": "^4.0.4",
-      "@tacman1123/twig-browser": "^0.2.1",
-      "@tacman1123/twig-browser/adapters/symfony": "^0.2.1",
+      "@tacman1123/twig-browser": "0.2.2",
+      "@tacman1123/twig-browser/adapters/symfony": "0.2.2",
       "@survos/js-twig-bundle/twig_api": "src/lib/twig_api.js",
       "@survos/js-twig-bundle/twig_blocks": "src/lib/twig_blocks.js"
     }
