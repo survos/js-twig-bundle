@@ -27,9 +27,9 @@ final class DexieTwigComponent extends AsTwigComponent
     public iterable|object|null $queries=null;
 
     public function __construct(
+        private array $config=[], // this is the config defined in survos_js_twig.yaml
         private Environment $twig,
         private LoggerInterface $logger,
-        private array $config=[], // this is the config defined in survos_js_twig.yaml
         JsTwigManifestRegistry $jsTwigManifestRegistry,
     ) {
         $this->jsTwigManifestRegistry = $jsTwigManifestRegistry;
