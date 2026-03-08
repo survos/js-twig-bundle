@@ -1,5 +1,6 @@
 import { Controller } from '@hotwired/stimulus';
-import { installTwigAPI, getRegistryEngine, autoInstallFosRouting } from '../lib/twig_api.js';
+import { installTwigAPI, getRegistryEngine, installFosRoutingFromData } from '../lib/twig_api.js';
+import { routingData } from '@survos/js-twig/generated/fos_routes.js';
 import { compileTwigBlocks, twigRender } from '../lib/twig_blocks.js';
 
 /* stimulusFetch: 'lazy' */
@@ -18,7 +19,7 @@ export default class extends Controller {
     connect() {
         this._tpl = {};
         installTwigAPI({ blockRegistry: this._tpl });
-        autoInstallFosRouting(getRegistryEngine(this._tpl));
+        installFosRoutingFromData(getRegistryEngine(this._tpl), routingData);
 
         if (this.scriptTagIdValue) {
             compileTwigBlocks(this._tpl, this.scriptTagIdValue);

@@ -1,8 +1,13 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Survos\JsTwigBundle;
 
+use FOS\JsRoutingBundle\Extractor\ExposedRoutesExtractorInterface;
+use FOS\JsRoutingBundle\Response\RoutesResponse;
 use Survos\CoreBundle\Traits\HasAssetMapperTrait;
+use Survos\JsTwigBundle\CacheWarmer\FosRoutingCacheWarmer;
 use Survos\JsTwigBundle\Components\DexieTwigComponent;
 use Survos\JsTwigBundle\Components\JsTwigComponent;
 use Survos\JsTwigBundle\Debug\JsTwigManifestRegistry;
@@ -17,6 +22,9 @@ use Symfony\Component\HttpKernel\Bundle\AbstractBundle;
 class SurvosJsTwigBundle extends AbstractBundle
 {
     use HasAssetMapperTrait;
+
+    /** Path (relative to project root) where the generated FOS routing ES module is written. */
+    public const GENERATED_ASSET_DIR = 'var/js_twig_bundle/generated';
 
     public function loadExtension(array $config, ContainerConfigurator $container, ContainerBuilder $builder): void
     {
@@ -46,6 +54,20 @@ class SurvosJsTwigBundle extends AbstractBundle
             ->setArgument('$registry', new Reference(JsTwigManifestRegistry::class))
             ->addTag('twig.extension');
 
+        // Register the FOS routing cache warmer only when the FOS JsRouting bundle is present.
+        if (interface_exists(ExposedRoutesExtractorInterface::class)) {
+            $projectDir = $builder->getParameter('kernel.project_dir');
+            $outputDir = $projectDir . '/' . self::GENERATED_ASSET_DIR;
+
+            $builder->register(FosRoutingCacheWarmer::class)
+                ->setAutowired(false)
+                ->setAutoconfigured(true)
+                ->setArgument('$extractor', new Reference('fos_js_routing.extractor'))
+                ->setArgument('$routesResponse', new Reference('fos_js_routing.routes_response'))
+                ->setArgument('$serializer', new Reference('fos_js_routing.serializer'))
+                ->setArgument('$outputDir', $outputDir)
+                ->addTag('kernel.cache_warmer');
+        }
     }
 
     public function configure(DefinitionConfigurator $definition): void
@@ -79,6 +101,32 @@ class SurvosJsTwigBundle extends AbstractBundle
         $dir = realpath(__DIR__ . '/../assets/');
         assert(file_exists($dir), 'asset path must exist for the assets in ' . __DIR__);
         return [$dir => '@survos/js-twig'];
+    }
+
+    public function prependExtension(ContainerConfigurator $container, ContainerBuilder $builder): void
+    {
+        if (!$this->isAssetMapperAvailable($builder)) {
+            return;
+        }
+
+        $paths = $this->getPaths();
+
+        // Also register the generated FOS routing directory when the FOS JsRouting bundle is present.
+        if (interface_exists(ExposedRoutesExtractorInterface::class)) {
+            $projectDir = (string) $builder->getParameter('kernel.project_dir');
+            $generatedDir = $projectDir . '/' . self::GENERATED_ASSET_DIR;
+            // Ensure the directory exists so AssetMapper can register it.
+            if (!is_dir($generatedDir)) {
+                mkdir($generatedDir, 0755, true);
+            }
+            $paths[$generatedDir] = '@survos/js-twig/generated';
+        }
+
+        $builder->prependExtensionConfig('framework', [
+            'asset_mapper' => [
+                'paths' => $paths,
+            ],
+        ]);
     }
 
 }

@@ -1,21 +1,7 @@
 import { createEngine } from '@tacman1123/twig-browser';
-import { installSymfonyTwigAPI } from '@tacman1123/twig-browser/adapters/symfony';
+import { installSymfonyTwigAPI, installFosRoutingFromData } from '@tacman1123/twig-browser/adapters/symfony';
 
-/**
- * Auto-detect and load FOS JS Routing, then wire path() into the engine.
- * Inlined here until autoInstallFosRouting is published in twig-browser.
- */
-export async function autoInstallFosRouting(engine) {
-  try {
-    const { default: Routing } = await import('fos-routing');
-    const { default: routingData } = await import('/js/fos_js_routes.js');
-    Routing.setData(routingData);
-    installSymfonyTwigAPI(engine, { Routing });
-    return true;
-  } catch {
-    return false;
-  }
-}
+export { installFosRoutingFromData };
 
 export const TWIG_DEBUG = true;
 

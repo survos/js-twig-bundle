@@ -26,10 +26,8 @@
     },
     "importmap": {
       "dexie": "^4.0.4",
-      "@tacman1123/twig-browser": "^0.3.1",
-      "@tacman1123/twig-browser/adapters/symfony": "^0.3.1",
-      "@survos/js-twig-bundle/twig_api": "src/lib/twig_api.js",
-      "@survos/js-twig-bundle/twig_blocks": "src/lib/twig_blocks.js"
+      "@tacman1123/twig-browser": "^0.4.5",
+      "@tacman1123/twig-browser/adapters/symfony": "^0.4.5"
     }
   },
   "peerDependencies": {
