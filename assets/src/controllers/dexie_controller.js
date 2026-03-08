@@ -1,7 +1,6 @@
 import { Controller } from "@hotwired/stimulus";
 import { createEngine } from '@tacman1123/twig-browser';
-import { installSymfonyTwigAPI, installFosRoutingFromData } from '@tacman1123/twig-browser/adapters/symfony';
-import { routingData } from '@survos/js-twig/generated/fos_routes.js';
+import { installSymfonyTwigAPI } from '@tacman1123/twig-browser/adapters/symfony';
 import { DbUtilities } from "../lib/dexieDatabase.js";
 import Dexie from "dexie";
 
@@ -51,7 +50,10 @@ export default class extends Controller {
         // Build twig-browser engine
         this._engine = createEngine();
         installSymfonyTwigAPI(this._engine);
-        installFosRoutingFromData(this._engine, routingData);
+        try {
+          const { path } = await import('@survos/js-twig/generated/fos_routes.js');
+          this._engine.registerFunction('path', path);
+        } catch { /* FOS routing not available */ }
 
         // Pre-compile all named templates
         this._compiled = {};

@@ -1,7 +1,5 @@
 import { createEngine } from '@tacman1123/twig-browser';
-import { installSymfonyTwigAPI, installFosRoutingFromData } from '@tacman1123/twig-browser/adapters/symfony';
-
-export { installFosRoutingFromData };
+import { installSymfonyTwigAPI } from '@tacman1123/twig-browser/adapters/symfony';
 
 export const TWIG_DEBUG = true;
 

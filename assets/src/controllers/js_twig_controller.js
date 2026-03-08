@@ -1,6 +1,5 @@
 import { Controller } from '@hotwired/stimulus';
-import { installTwigAPI, getRegistryEngine, installFosRoutingFromData } from '../lib/twig_api.js';
-import { routingData } from '@survos/js-twig/generated/fos_routes.js';
+import { installTwigAPI, getRegistryEngine } from '../lib/twig_api.js';
 import { compileTwigBlocks, twigRender } from '../lib/twig_blocks.js';
 
 /* stimulusFetch: 'lazy' */
@@ -16,10 +15,13 @@ export default class extends Controller {
         scriptTagId: { type: String, default: '' },
     };
 
-    connect() {
+    async connect() {
         this._tpl = {};
         installTwigAPI({ blockRegistry: this._tpl });
-        installFosRoutingFromData(getRegistryEngine(this._tpl), routingData);
+        try {
+          const { path } = await import('@survos/js-twig/generated/fos_routes.js');
+          getRegistryEngine(this._tpl).registerFunction('path', path);
+        } catch { /* FOS routing not available */ }
 
         if (this.scriptTagIdValue) {
             compileTwigBlocks(this._tpl, this.scriptTagIdValue);
