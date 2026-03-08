@@ -1,33 +1,6 @@
 import { Controller } from '@hotwired/stimulus';
-import * as StimAttrs from 'stimulus-attributes';
-import { installTwigAPI } from '../lib/twig_api.js';
+import { installTwigAPI, getRegistryEngine, autoInstallFosRouting } from '../lib/twig_api.js';
 import { compileTwigBlocks, twigRender } from '../lib/twig_blocks.js';
-
-let Routing = null;
-try {
-    const mod = await import('fos-routing');
-    Routing = mod.default;
-
-    let routingLoaded = false;
-    try {
-        const response = await fetch('/js/fos_js_routes.json', {
-            headers: { Accept: 'application/json' },
-        });
-        if (response.ok) {
-            Routing.setData(await response.json());
-            routingLoaded = true;
-        }
-    } catch {
-        routingLoaded = false;
-    }
-
-    if (!routingLoaded) {
-        const data = await import('/js/fos_js_routes.js');
-        Routing.setData(data.default);
-    }
-} catch {
-    // optional in non-Symfony/FOS contexts
-}
 
 /* stimulusFetch: 'lazy' */
 export default class extends Controller {
@@ -44,7 +17,8 @@ export default class extends Controller {
 
     connect() {
         this._tpl = {};
-        installTwigAPI({ Routing, StimAttrs, blockRegistry: this._tpl });
+        installTwigAPI({ blockRegistry: this._tpl });
+        autoInstallFosRouting(getRegistryEngine(this._tpl));
 
         if (this.scriptTagIdValue) {
             compileTwigBlocks(this._tpl, this.scriptTagIdValue);
