@@ -25,9 +25,9 @@
 
     },
     "importmap": {
-      "dexie": "^4.0.4",
-      "@tacman1123/twig-browser": "^0.4.5",
-      "@tacman1123/twig-browser/adapters/symfony": "^0.4.5"
+      "dexie": "^4.3.0",
+      "@tacman1123/twig-browser": "^0.4.14",
+      "@tacman1123/twig-browser/adapters/symfony": "^0.4.14"
     }
   },
   "peerDependencies": {
@@ -37,6 +37,6 @@
     "@hotwired/stimulus": "^3.2.2"
   },
   "dependencies": {
-    "dexie": "^4.0.4"
+    "dexie": "^4.3.0"
   }
 }
