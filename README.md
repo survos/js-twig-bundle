@@ -69,19 +69,21 @@ Use a script tag that contains a JSON object `blockName -> template string`.
 
 ```js
 import { Controller } from '@hotwired/stimulus';
-import * as StimAttrs from 'stimulus-attributes';
-import { installTwigAPI } from '@survos/js-twig-bundle/twig_api';
-import { compileTwigBlocks, twigRender } from '@survos/js-twig-bundle/twig_blocks';
+import { createEngine } from '@tacman1123/twig-browser';
+import { installSymfonyTwigAPI } from '@tacman1123/twig-browser/adapters/symfony';
+import { compileTwigBlocks } from '@tacman1123/twig-browser/src/compat/compileTwigBlocks.js';
+import { path } from '@survos/js-twig/generated/fos_routes.js';
 
 export default class extends Controller {
   connect() {
     this.tpl = {};
-    installTwigAPI({ StimAttrs, blockRegistry: this.tpl });
-    compileTwigBlocks(this.tpl, 'api-grid-cell-blocks');
+    this.engine = createEngine();
+    installSymfonyTwigAPI(this.engine, { pathGenerator: path });
+    compileTwigBlocks(this.engine, this.tpl, 'api-grid-cell-blocks');
   }
 
   renderCell(row) {
-    return twigRender(this.tpl, 'cell', { data: row, globals: { locale: 'en' } });
+    return this.engine.renderBlock('cell', { data: row, globals: { locale: 'en' } });
   }
 }
 ```
@@ -100,7 +102,7 @@ The bundle still ships `<twig:jsTwig>` and `js_twig_controller.js` for direct fe
 
 ## Twig functions available in browser templates
 
-After `installTwigAPI(...)`, twig.js templates can call:
+After `installSymfonyTwigAPI(...)`, twig.js templates can call:
 - `path(route, params)`
 - `render(blockName, vars)`
 - `stimulus_controller(name, values, classes, outlets)`
@@ -109,7 +111,7 @@ After `installTwigAPI(...)`, twig.js templates can call:
 - `ux_icon(name, attrs)`
 - `sais_encode(url)`
 
-See `assets/src/lib/twig_api.js` for behavior and fallbacks.
+Prefer `@tacman1123/twig-browser` directly for all new code. `assets/src/lib/twig_api.js` remains only as a legacy shim.
 
 ## Dexie integration (optional)
 

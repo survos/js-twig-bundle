@@ -1,6 +1,7 @@
 import { Controller } from '@hotwired/stimulus';
-import { installTwigAPI, getRegistryEngine } from '../lib/twig_api.js';
-import { compileTwigBlocks, twigRender } from '../lib/twig_blocks.js';
+import { createEngine } from '@tacman1123/twig-browser';
+import { installSymfonyTwigAPI } from '@tacman1123/twig-browser/adapters/symfony';
+import { compileTwigBlocks } from '@tacman1123/twig-browser/src/compat/compileTwigBlocks.js';
 
 /* stimulusFetch: 'lazy' */
 export default class extends Controller {
@@ -17,14 +18,14 @@ export default class extends Controller {
 
     async connect() {
         this._tpl = {};
-        installTwigAPI({ blockRegistry: this._tpl });
+        this._engine = createEngine();
         try {
           const { path } = await import('@survos/js-twig/generated/fos_routes.js');
-          getRegistryEngine(this._tpl).registerFunction('path', path);
+          installSymfonyTwigAPI(this._engine, { pathGenerator: path });
         } catch { /* FOS routing not available */ }
 
         if (this.scriptTagIdValue) {
-            compileTwigBlocks(this._tpl, this.scriptTagIdValue);
+            compileTwigBlocks(this._engine, this._tpl, this.scriptTagIdValue);
         }
 
         this.render();
@@ -48,7 +49,7 @@ export default class extends Controller {
         const item = await this.fetchItem();
 
         const blockName = this.pickDefaultBlockName();
-        const html = twigRender(this._tpl, blockName, {
+        const html = this._engine.renderBlock(blockName, {
             data: item,
             row: item,
             globals,

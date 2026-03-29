@@ -38,7 +38,7 @@ export function twigDebugWrap(blockName, html) {
 
 export function installTwigAPI({ Routing = null, StimAttrs = null, blockRegistry = {}, pathGenerator = null, uxIconResolver = null } = {}) {
     if (!globalThis.__jstwigDeprecatedInstallWarned__) {
-        console.warn('[js-twig-bundle] installTwigAPI() is deprecated. Migrate to @tacman1123/twig-browser createEngine() + installSymfonyTwigAPI().');
+        console.error('[js-twig-bundle][DEPRECATED] installTwigAPI() is deprecated and will be removed. Migrate to @tacman1123/twig-browser createEngine() + installSymfonyTwigAPI().');
         globalThis.__jstwigDeprecatedInstallWarned__ = true;
     }
 

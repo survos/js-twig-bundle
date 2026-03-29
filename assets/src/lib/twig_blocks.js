@@ -59,6 +59,17 @@ export function compileTwigBlocks(registry, scriptTagId = 'show-pages-blocks') {
         scriptTagId,
     };
 
+    const escapedId = (typeof CSS !== 'undefined' && typeof CSS.escape === 'function')
+        ? CSS.escape(scriptTagId)
+        : scriptTagId.replace(/(["\\#.:\[\],=])/g, '\\$1');
+    const duplicateTags = document.querySelectorAll(`[data-jstwig-role="blocks"]#${escapedId}`);
+    if (duplicateTags.length > 1) {
+        throw new Error(
+            `[twig_blocks] duplicate blocks script id "${scriptTagId}" found (${duplicateTags.length}). ` +
+            'Each component instance must have a unique scriptTagId.'
+        );
+    }
+
     const el = document.getElementById(scriptTagId);
     if (!el) {
         console.warn(`[twig_blocks] <script id="${scriptTagId}"> not found.`);
@@ -137,6 +148,12 @@ export function twigRender(registry, blockName, data = {}) {
         const message = registry.__errors__[blockName]?.message ?? 'compile error';
         debugStore.usedBlocks.push({ scriptTagId, blockName, caller, status: 'compile_error', at: new Date().toISOString() });
         return `<div class="alert alert-danger p-1 small font-monospace">[twig compile error] ${esc(blockName)} @ #${esc(scriptTagId)}: ${esc(message)}</div>`;
+    }
+
+    if (!registry.__sources__?.[blockName]) {
+        const available = Object.keys(registry.__sources__ ?? {}).join(', ');
+        debugStore.usedBlocks.push({ scriptTagId, blockName, caller, status: 'missing_block', at: new Date().toISOString() });
+        return `<div class="alert alert-danger p-1 small font-monospace">[twig missing block] ${esc(blockName)} @ #${esc(scriptTagId)}. Available: ${esc(available || '(none)')}</div>`;
     }
 
     try {

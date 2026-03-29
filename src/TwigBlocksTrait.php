@@ -10,6 +10,7 @@ trait TwigBlocksTrait
 
     public string $caller;
     public ?string $id = null;
+    protected ?string $jsTwigScriptTagId = null;
     protected ?JsTwigManifestRegistry $jsTwigManifestRegistry = null;
     // must inject twig!
 
@@ -58,12 +59,13 @@ trait TwigBlocksTrait
             $crawler->addHtmlContent($componentHtml);
             $allTwigBlocks = [];
             // use an ID to select a specific template, regardless of where it is in the page.
-            if ($id = $this->getId()) {
-                $selector = '#' . $this->getId();
+            $selectedId = $id ?? $this->getId();
+            if ($selectedId) {
+                $selector = '#' . $selectedId;
                 $text = $crawler->filter($selector)->html();
                 $text =  urldecode($text);
 
-                $customColumnTemplates[$this->getId()] = $text;
+                $customColumnTemplates[$selectedId] = $text;
                 return $customColumnTemplates;
             }
 
@@ -72,7 +74,7 @@ trait TwigBlocksTrait
             if ($blocks->count() > 0) {
 
 
-                $allTwigBlocks = $blocks->each(function (Crawler $node, $i) use ($componentHtml) {
+                $allTwigBlocks = $blocks->each(function (Crawler $node) {
 //                    dd($node);
 //                    foreach ($crawler->getNode(0)->attributes as $attribute) {
 //                        dd($attribute->name, $attribute->value);
@@ -83,27 +85,18 @@ trait TwigBlocksTrait
 
                     //                    https://stackoverflow.com/questions/15133541/get-raw-html-code-of-element-with-symfony-domcrawler
                     $blockName = $node->attr('name');
-                    $wrapper = $node->attr('data-element');
-                    $id = $node->attr('id', null);
-                    $extras = [];
-                    if ($id) {
-                        $preg = sprintf('id="%s"(.*?)>(.*?)<!-- *%s', $id, $id);
-                        if (preg_match("/$preg/sm", $componentHtml, $mm)) {
-                            $extras = $mm[1];
-                            $html = $mm[2];
-                        } else {
-                            throw new \Exception("Invalid closing for : $id in {$this->caller}" . $componentHtml);
-                        }
-                    } else {
-                        $html = $node->html();
+                    if (!$blockName) {
+                        throw new \InvalidArgumentException(sprintf('Missing required block name attribute in %s', (string) $this->caller));
                     }
+                    $wrapper = $node->attr('data-element');
+                    $html = $node->html() ?? '';
 
                     $html = rawurldecode($html);
 //                    file_put_contents('./$.html', $html);
                     // hack for twig > and <
                     $html = str_replace(['&lt;', '&gt;'], ['<', '>'], $html);
 //                    dd(false, $node->text());
-                    return [$blockName => ['extra' => $extras, 'wrapper' => $wrapper, 'html' => $html]];
+                    return [$blockName => ['extra' => '', 'wrapper' => $wrapper, 'html' => $html]];
                 });
             }
 
@@ -116,6 +109,13 @@ trait TwigBlocksTrait
         }
         foreach ($allTwigBlocks as $allTwigBlock) {
             foreach ($allTwigBlock as $key => $value) {
+                if (array_key_exists($key, $customColumnTemplates)) {
+                    throw new \RuntimeException(sprintf(
+                        'Duplicate twig:block name "%s" detected in %s. Block names must be unique within one component template.',
+                        $key,
+                        (string) $this->caller
+                    ));
+                }
                 $customColumnTemplates[$key] = $value;
             }
         }
@@ -129,7 +129,15 @@ trait TwigBlocksTrait
             return $this->id;
         }
 
-        return 'jstwig-' . substr(md5((string) $this->caller), 0, 10);
+        if ($this->jsTwigScriptTagId) {
+            return $this->jsTwigScriptTagId;
+        }
+
+        $callerHash = substr(md5((string) $this->caller), 0, 10);
+        $instanceHash = substr(md5((string) spl_object_id($this)), 0, 6);
+        $this->jsTwigScriptTagId = sprintf('jstwig-%s-%s', $callerHash, $instanceHash);
+
+        return $this->jsTwigScriptTagId;
     }
 
     public function getJsTwigManifest(): array
