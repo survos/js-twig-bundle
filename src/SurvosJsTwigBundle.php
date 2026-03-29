@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Survos\JsTwigBundle;
 
+use Survos\CoreBundle\HasAssetMapperInterface;
 use Survos\CoreBundle\Traits\HasAssetMapperTrait;
 use Survos\JsTwigBundle\CacheWarmer\FosRoutingCacheWarmer;
 use Survos\JsTwigBundle\Components\DexieTwigComponent;
@@ -18,9 +19,11 @@ use Symfony\Component\DependencyInjection\Loader\Configurator\ContainerConfigura
 use Symfony\Component\DependencyInjection\Reference;
 use Symfony\Component\HttpKernel\Bundle\AbstractBundle;
 
-class SurvosJsTwigBundle extends AbstractBundle
+class SurvosJsTwigBundle extends AbstractBundle implements HasAssetMapperInterface
 {
     use HasAssetMapperTrait;
+
+    public const ASSET_NAMESPACE = '@survos/js-twig';
 
     /** Path (relative to project root) where the generated routing ES module is written. */
     public const GENERATED_ASSET_DIR = 'var/js_twig_bundle/generated';
@@ -105,13 +108,6 @@ class SurvosJsTwigBundle extends AbstractBundle
                     ->end()
                 ->end()
             ->end();
-    }
-
-    public function getPaths(): array
-    {
-        $dir = realpath(__DIR__ . '/../assets/');
-        assert(file_exists($dir), 'asset path must exist for the assets in ' . __DIR__);
-        return [$dir => '@survos/js-twig'];
     }
 
     public function prependExtension(ContainerConfigurator $container, ContainerBuilder $builder): void
