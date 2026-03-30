@@ -4,8 +4,7 @@ declare(strict_types=1);
 
 namespace Survos\JsTwigBundle;
 
-use Survos\CoreBundle\HasAssetMapperInterface;
-use Survos\CoreBundle\Traits\HasAssetMapperTrait;
+use Survos\CoreBundle\Bundle\AssetMapperBundle;
 use Survos\JsTwigBundle\CacheWarmer\FosRoutingCacheWarmer;
 use Survos\JsTwigBundle\Components\DexieTwigComponent;
 use Survos\JsTwigBundle\Components\JsTwigComponent;
@@ -17,13 +16,9 @@ use Symfony\Component\DependencyInjection\ContainerBuilder;
 use Symfony\Component\DependencyInjection\ContainerInterface;
 use Symfony\Component\DependencyInjection\Loader\Configurator\ContainerConfigurator;
 use Symfony\Component\DependencyInjection\Reference;
-use Symfony\Component\HttpKernel\Bundle\AbstractBundle;
-
-class SurvosJsTwigBundle extends AbstractBundle implements HasAssetMapperInterface
+class SurvosJsTwigBundle extends AssetMapperBundle
 {
-    use HasAssetMapperTrait;
-
-    public const ASSET_NAMESPACE = '@survos/js-twig';
+    public const ASSET_PACKAGE = 'js-twig';
 
     /** Path (relative to project root) where the generated routing ES module is written. */
     public const GENERATED_ASSET_DIR = 'var/js_twig_bundle/generated';

@@ -6,7 +6,7 @@ import Dexie from "dexie";
 
 /* make sure this is loaded eagerly in assets/controllers.json so that listeners
    are registered before any events fire:
-   "@survos/js-twig-bundle": {
+   "@survos/js-twig": {
        "dexie": { "enabled": true, "fetch": "eager" }
    }
 */
@@ -38,7 +38,7 @@ export default class extends Controller {
 
     async connect() {
         // Self-target so the template has somewhere to render into
-        this.element.setAttribute('data-survos--js-twig-bundle--dexie-target', 'content');
+        this.element.setAttribute('data-survos--js-twig--dexie-target', 'content');
 
         console.assert(this.refreshEventValue, '[dexie] missing refreshEvent value');
         console.assert(this.hasAppOutlet,       '[dexie] missing app outlet');

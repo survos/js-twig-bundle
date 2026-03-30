@@ -23,7 +23,7 @@ class JsTwigComponent implements TwigBlocksInterface
         JsTwigManifestRegistry $jsTwigManifestRegistry,
     ) {
         $this->jsTwigManifestRegistry = $jsTwigManifestRegistry;
-        //        ='@survos/grid-bundle/api_grid';
+        //        ='@survos/grid/api_grid';
     }
 
 

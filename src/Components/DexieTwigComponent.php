@@ -34,7 +34,7 @@ final class DexieTwigComponent extends AsTwigComponent
     ) {
         $this->jsTwigManifestRegistry = $jsTwigManifestRegistry;
 
-        //        ='@survos/grid-bundle/api_grid';
+        //        ='@survos/grid/api_grid';
     }
 
 

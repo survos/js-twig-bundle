@@ -1,5 +1,5 @@
 {
-  "name": "@survos/js-twig-bundle",
+  "name": "@survos/js-twig",
   "description": "integrate jstwig library with Symfony",
   "license": "MIT",
   "version": "1.0.5",
@@ -10,19 +10,15 @@
         "webpackMode": "eager",
         "fetch": "eager",
         "enabled": true,
-        "autoimport": {
-        }
+        "autoimport": {}
       },
       "js_twig": {
-          "main": "src/controllers/js_twig_controller.js",
-          "webpackMode": "eager",
-          "fetch": "lazy",
-          "enabled": true,
-          "autoimport": {
-        }
+        "main": "src/controllers/js_twig_controller.js",
+        "webpackMode": "eager",
+        "fetch": "lazy",
+        "enabled": true,
+        "autoimport": {}
       }
-
-
     },
     "importmap": {
       "dexie": "^4.3.0",
