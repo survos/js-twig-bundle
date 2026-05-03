@@ -6,6 +6,7 @@
   "symfony": {
     "controllers": {
       "dexie": {
+        "name": "survos/js-twig/dexie",
         "main": "src/controllers/dexie_controller.js",
         "webpackMode": "eager",
         "fetch": "eager",
@@ -13,6 +14,7 @@
         "autoimport": {}
       },
       "js_twig": {
+        "name": "survos/js-twig/js_twig",
         "main": "src/controllers/js_twig_controller.js",
         "webpackMode": "eager",
         "fetch": "lazy",
