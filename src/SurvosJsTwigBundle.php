@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Survos\JsTwigBundle;
 
-use Survos\CoreBundle\Bundle\AssetMapperBundle;
+use Survos\Kit\AbstractUxBundle;
 use Survos\JsTwigBundle\CacheWarmer\FosRoutingCacheWarmer;
 use Survos\JsTwigBundle\Components\DexieTwigComponent;
 use Survos\JsTwigBundle\Components\JsTwigComponent;
@@ -16,7 +16,7 @@ use Symfony\Component\DependencyInjection\ContainerBuilder;
 use Symfony\Component\DependencyInjection\ContainerInterface;
 use Symfony\Component\DependencyInjection\Loader\Configurator\ContainerConfigurator;
 use Symfony\Component\DependencyInjection\Reference;
-class SurvosJsTwigBundle extends AssetMapperBundle
+class SurvosJsTwigBundle extends AbstractUxBundle
 {
     public const ASSET_PACKAGE = 'js-twig';
 
@@ -107,23 +107,17 @@ class SurvosJsTwigBundle extends AssetMapperBundle
 
     public function prependExtension(ContainerConfigurator $container, ContainerBuilder $builder): void
     {
-        if (!$this->isAssetMapperAvailable($builder)) {
-            return;
-        }
+        parent::prependExtension($container, $builder);
 
-        $paths = $this->getPaths();
-
-        // Always register the generated routing directory as an AssetMapper path.
+        // Register the generated routing directory as an additional AssetMapper path.
         $projectDir   = (string) $builder->getParameter('kernel.project_dir');
         $generatedDir = $projectDir . '/' . self::GENERATED_ASSET_DIR;
         if (!is_dir($generatedDir)) {
             mkdir($generatedDir, 0755, true);
         }
-        $paths[$generatedDir] = '@survos/js-twig/generated';
-
         $builder->prependExtensionConfig('framework', [
             'asset_mapper' => [
-                'paths' => $paths,
+                'paths' => [$generatedDir => '@survos/js-twig/generated'],
             ],
         ]);
     }

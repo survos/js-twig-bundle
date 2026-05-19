@@ -13,8 +13,8 @@
         "symfony/http-kernel": "^7.4||^8.0",
         "twig/twig": "^3.4",
         "symfony/ux-twig-component": "^2.0|^3.0",
-        "survos/core-bundle": "^2.0",
-        "symfony/dom-crawler": "^7.4||^8.0"
+        "symfony/dom-crawler": "^7.4||^8.0",
+        "survos/kit-bundle": "^2.0"
     },
     "require-dev": {
         "roave/security-advisories": "dev-latest",
