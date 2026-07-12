@@ -24,8 +24,8 @@
     },
     "importmap": {
       "dexie": "^4.3.0",
-      "@tacman1123/twig-browser": "^0.4.16",
-      "@tacman1123/twig-browser/adapters/symfony": "^0.4.16"
+      "@tacman1123/twig-browser": "^1.0.0",
+      "@tacman1123/twig-browser/adapters/symfony": "^1.0.0"
     }
   },
   "peerDependencies": {
