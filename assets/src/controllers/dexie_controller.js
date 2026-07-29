@@ -1,6 +1,7 @@
 import { Controller } from "@hotwired/stimulus";
 import { createEngine } from '@tacman1123/twig-browser';
 import { installSymfonyTwigAPI } from '@tacman1123/twig-browser/adapters/symfony';
+import { installMarkdownFilter } from '../lib/markdown_filter.js';
 import { DbUtilities } from "../lib/dexieDatabase.js";
 import Dexie from "dexie";
 
@@ -44,12 +45,26 @@ export default class extends Controller {
         console.assert(this.hasAppOutlet,       '[dexie] missing app outlet');
         console.assert(this.dbNameValue,        '[dexie] missing dbName value');
 
+        // Register the listener FIRST, synchronously, before any of the async setup below.
+        // A refresh event can arrive the instant this element is inserted (e.g. an SPA route's
+        // pageAfterIn firing right after page insertion, before this controller's own connect()
+        // has had a chance to finish) -- if the listener isn't attached yet, that first event
+        // is silently lost with no retry. _onRefresh awaits _readyPromise so an early event
+        // just waits for compilation to finish instead of being dropped.
+        let resolveReady;
+        this._readyPromise = new Promise((resolve) => { resolveReady = resolve; });
+        this._resolveReady = resolveReady;
+        if (this.refreshEventValue) {
+            document.addEventListener(this.refreshEventValue, (e) => this._onRefresh(e));
+        }
+
         this._filter = this.filterValue ? JSON.parse(this.filterValue) : {};
         this._store  = this.storeValue  ? JSON.parse(this.storeValue)  : {};
 
         // Build twig-browser engine
         this._engine = createEngine();
         installSymfonyTwigAPI(this._engine);
+        installMarkdownFilter(this._engine);
         try {
           const { path } = await import('@survos/js-twig/generated/fos_routes.js');
           this._engine.registerFunction('path', path);
@@ -77,10 +92,7 @@ export default class extends Controller {
             }
         }
 
-        // Listen for the refresh event
-        if (this.refreshEventValue) {
-            document.addEventListener(this.refreshEventValue, (e) => this._onRefresh(e));
-        }
+        this._resolveReady();
     }
 
     // ------------------------------------------------------------------
@@ -88,6 +100,7 @@ export default class extends Controller {
     // ------------------------------------------------------------------
 
     async _onRefresh(e) {
+        await this._readyPromise;
         console.log(`[dexie] ${this.refreshEventValue} fired`, e.detail);
 
         if (Object.prototype.hasOwnProperty.call(e.detail ?? {}, 'id')) {
@@ -135,6 +148,13 @@ export default class extends Controller {
 
         const entities = {};
         let title = 'Untitled';
+
+        // Reset before accumulating -- renderPage() can run more than once against the same
+        // connected controller (e.g. an SPA route reusing one cached page across successive
+        // navigations to different :id values), and each query below appends rather than
+        // replaces; without this, a second visit stacks new content underneath the old instead
+        // of showing only the current entity's.
+        this.contentTarget.innerHTML = '';
 
         for (const [key, query] of Object.entries(this.queriesValue)) {
             if (!query.templateName) {

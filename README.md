@@ -111,6 +111,14 @@ After `installSymfonyTwigAPI(...)`, twig.js templates can call:
 - `ux_icon(name, attrs)`
 - `sais_encode(url)`
 
+And the `markdown_to_html` filter (via [marked](https://www.npmjs.com/package/marked)):
+
+```twig
+{{ data.observation|markdown_to_html|raw }}
+```
+
+Mirrors the server-side `|markdown` filter (League\CommonMark, see `folio-bundle`'s `FolioCoreTwig`) so AI-generated prose renders the same whether a block is compiled server-side or re-rendered client-side.
+
 Prefer `@tacman1123/twig-browser` directly for all new code. `assets/src/lib/twig_api.js` remains only as a legacy shim.
 
 ## Dexie integration (optional)

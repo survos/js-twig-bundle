@@ -2,6 +2,7 @@ import { Controller } from '@hotwired/stimulus';
 import { createEngine } from '@tacman1123/twig-browser';
 import { installSymfonyTwigAPI } from '@tacman1123/twig-browser/adapters/symfony';
 import { compileTwigBlocks } from '@tacman1123/twig-browser/src/compat/compileTwigBlocks.js';
+import { installMarkdownFilter } from '../lib/markdown_filter.js';
 
 /* stimulusFetch: 'lazy' */
 export default class extends Controller {
@@ -19,6 +20,7 @@ export default class extends Controller {
     async connect() {
         this._tpl = {};
         this._engine = createEngine();
+        installMarkdownFilter(this._engine);
         try {
           const { path } = await import('@survos/js-twig/generated/fos_routes.js');
           installSymfonyTwigAPI(this._engine, { pathGenerator: path });

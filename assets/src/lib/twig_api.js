@@ -1,5 +1,6 @@
 import { createEngine } from '@tacman1123/twig-browser';
 import { installSymfonyTwigAPI } from '@tacman1123/twig-browser/adapters/symfony';
+import { installMarkdownFilter } from './markdown_filter.js';
 
 export const TWIG_DEBUG = true;
 
@@ -79,6 +80,7 @@ export function installTwigAPI({ Routing = null, StimAttrs = null, blockRegistry
         pathGenerator: resolvePath,
         uxIconResolver: resolveIcon,
     });
+    installMarkdownFilter(engine);
 
     registry.__engine__ = engine;
     registry.__meta__.installSeq = installSeq;
@@ -99,6 +101,7 @@ export function getRegistryEngine(blockRegistry) {
     const registry = ensureRegistryShape(blockRegistry);
     if (!registry.__engine__) {
         registry.__engine__ = createEngine();
+        installMarkdownFilter(registry.__engine__);
     }
     return registry.__engine__;
 }
