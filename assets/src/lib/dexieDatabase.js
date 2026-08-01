@@ -41,21 +41,22 @@ class DbUtilities {
         this.countEmptyTables().then(emptyTables => {
             if (emptyTables.length > 0) {
                 console.log('Empty tables : ' + emptyTables.map(table => table.name).join(', '));
-                var gauge = app.gauge.create({
-                    el: dataProgress,
-                    value: 0,
-                    valueText: '0%',
-                    valueTextColor: '#ff9800',
-                    borderColor: '#ff9800',
-                    type: 'circle',
-                    labelText: 'Loading Data ...',
-                    on: {
-                        beforeDestroy: function () {
-                            console.log('Gauge will be destroyed')
+                if (dataProgress) {
+                    this.gauge = app.gauge.create({
+                        el: dataProgress,
+                        value: 0,
+                        valueText: '0%',
+                        valueTextColor: '#ff9800',
+                        borderColor: '#ff9800',
+                        type: 'circle',
+                        labelText: 'Loading Data ...',
+                        on: {
+                            beforeDestroy: function () {
+                                console.log('Gauge will be destroyed')
+                            }
                         }
-                    }
-                });
-                this.gauge = gauge;
+                    });
+                }
                 this.populateEmptyTables(emptyTables);
             } else {
                 console.log('All tables are populated');
@@ -116,7 +117,7 @@ class DbUtilities {
     }
 
     async destroyGauge() {
-        this.gauge.destroy();
+        this.gauge?.destroy();
     }
 
     async populateEmptyTables(tables) {
@@ -125,7 +126,7 @@ class DbUtilities {
             await this.syncTable(table.name, table.url);
             let value = Math.round((index / tables.length) * 100) / 100;
             value = value.toFixed(2);
-            this.gauge.update({
+            this.gauge?.update({
                 value: value,
                 valueText: (value * 100) + '%'
             });
@@ -142,7 +143,7 @@ class DbUtilities {
         if (table) {
             let count = await this.db[table].count();
             if (count === 0) {
-                this.fetchTable(table, url);
+                await this.fetchTable(table, url);
             }
         }
     }
@@ -158,9 +159,7 @@ class DbUtilities {
         let res = await fetch(url);
         let data = await res.json();
         if (data.member.length > 0) {
-            data.member.forEach(row => {
-                this.db[table].add(row);
-            });
+            await this.db[table].bulkAdd(data.member);
             if (data.view && data.view.next) {
                 await this.fetchTable(table, data.view.next); // Fetch next page
             }
