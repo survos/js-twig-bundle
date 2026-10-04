@@ -72,7 +72,7 @@ import { Controller } from '@hotwired/stimulus';
 import { createEngine } from '@tacman1123/twig-browser';
 import { installSymfonyTwigAPI } from '@tacman1123/twig-browser/adapters/symfony';
 import { compileTwigBlocks } from '@tacman1123/twig-browser/src/compat/compileTwigBlocks.js';
-import { path } from '@survos/js-twig/generated/fos_routes.js';
+import { path } from '@survos/js-twig/routing';
 
 export default class extends Controller {
   connect() {
@@ -141,3 +141,24 @@ Bundle configuration keys are defined in `src/SurvosJsTwigBundle.php`:
 - `docs/AI_AGENT_GUIDE.md`: implementation conventions for contributors/agents.
 - `docs/IMPROVEMENTS.md`: prioritized code improvements.
 - `docs/EVENT_DRIVEN_EXAMPLE.md`: real-world event-driven rendering pattern.
+
+## Routing without FOSJsRoutingBundle
+
+`cache:clear` / `cache:warmup` writes exposed route data to
+`var/js_twig_bundle/generated/routes.json`. The maintained `assets/routing.js`
+module imports that JSON using AssetMapper's promise loader and exports `path()`
+and `generate()`. Requires AssetMapper 7.4.20+ or 8.1.8+.
+
+```js
+import { path } from '@survos/js-twig/routing';
+```
+
+The bundle resolves this import and its JSON dependency automatically, including
+when installed through a Composer path symlink. No routing entry in the application's
+`importmap.php`, FOS bundle, or dump command is needed. The previous
+`@survos/js-twig/generated/fos_routes.js` import remains a compatibility alias.
+Remove old application entries for that generated JS file when migrating.
+
+Expose routes with `options: ['expose' => true]` or configure
+`survos_js_twig.routing.routes_to_expose`. Warm the cache before
+`asset-map:compile` in production. Rewarm after changing exposed routes in development.

@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Survos\JsTwigBundle;
 
 use Survos\Kit\AbstractUxBundle;
+use Survos\JsTwigBundle\AssetMapper\RoutingImportCompiler;
 use Survos\JsTwigBundle\CacheWarmer\FosRoutingCacheWarmer;
 use Survos\JsTwigBundle\Components\DexieTwigComponent;
 use Survos\JsTwigBundle\Components\JsTwigComponent;
@@ -21,7 +22,7 @@ class SurvosJsTwigBundle extends AbstractUxBundle
 {
     public const ASSET_PACKAGE = 'js-twig';
 
-    /** Path (relative to project root) where the generated routing ES module is written. */
+    /** Path (relative to project root) where generated route JSON is written. */
     public const GENERATED_ASSET_DIR = 'var/js_twig_bundle/generated';
 
     public function loadExtension(array $config, ContainerConfigurator $container, ContainerBuilder $builder): void
@@ -62,6 +63,10 @@ class SurvosJsTwigBundle extends AbstractUxBundle
         // Register the routing cache warmer unconditionally.
         $projectDir = $builder->getParameter('kernel.project_dir');
         $outputDir  = $projectDir . '/' . self::GENERATED_ASSET_DIR;
+
+        $builder->register(RoutingImportCompiler::class)
+            ->setArgument('$generatedDir', $outputDir)
+            ->addTag('asset_mapper.compiler', ['priority' => 100]);
 
         $builder->register(FosRoutingCacheWarmer::class)
             ->setAutowired(false)
