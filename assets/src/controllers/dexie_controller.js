@@ -66,7 +66,7 @@ export default class extends Controller {
         installSymfonyTwigAPI(this._engine);
         installMarkdownFilter(this._engine);
         try {
-          const { path } = await import('@survos/js-twig/generated/fos_routes.js');
+          const { path } = await import('@survos/js-twig/routing');
           this._engine.registerFunction('path', path);
         } catch { /* FOS routing not available */ }
 

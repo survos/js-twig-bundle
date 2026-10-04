@@ -162,3 +162,8 @@ Remove old application entries for that generated JS file when migrating.
 Expose routes with `options: ['expose' => true]` or configure
 `survos_js_twig.routing.routes_to_expose`. Warm the cache before
 `asset-map:compile` in production. Rewarm after changing exposed routes in development.
+
+See the [migration guide and local application audit](docs/routing-migration.md)
+before removing FOS from an existing app. In particular, the old JS import alias
+is supported, but old importmap entries pointing to a generated JS file must be
+removed; do not copy them into new projects.
