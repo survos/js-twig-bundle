@@ -33,6 +33,10 @@ final class RoutingImportCompiler implements AssetCompilerInterface
             $imports['./routes.json'] = $this->generatedDir.'/routes.json';
         }
 
+        if (!array_any(array_keys($imports), static fn (string $specifier): bool => str_contains($content, $specifier))) {
+            return $content;
+        }
+
         // Skip comments and strings so examples embedded in JS are not rewritten.
         $pattern = <<<'REGEX'
 ~//[^\n]*|/\*[\s\S]*?\*/|"(?:\\.|[^"\\])*"|'(?:\\.|[^'\\])*'|`(?:\\.|[^`\\])*`|(?<prefix>\b(?:import\s*(?:[\w\s{},*]+\s+from\s*|\(\s*)|export\s*[\w\s{},*]+\s+from\s*))(?<quote>['"])(?<specifier>[^'"\n]+)\k<quote>~
