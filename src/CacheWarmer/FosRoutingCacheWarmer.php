@@ -43,9 +43,16 @@ final class FosRoutingCacheWarmer implements CacheWarmerInterface
         return [];
     }
 
+    /**
+     * Optional on purpose. Required warmers run during container compilation, before Doctrine's
+     * (optional, priority 1000) metadata warmers, and collecting routes loads entity metadata
+     * through API Platform's route loader. DoctrineMetadataCacheWarmer then finds metadata
+     * already loaded and fails `cache:clear` in every app with API Platform and Doctrine.
+     * A normal `cache:clear` still runs it, so routes.json exists before `asset-map:compile`.
+     */
     public function isOptional(): bool
     {
-        return false;
+        return true;
     }
 
 }

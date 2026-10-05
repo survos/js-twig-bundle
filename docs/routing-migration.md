@@ -109,5 +109,73 @@ removed; zm had no dump script. Both pass cache warmup, container validation,
 AssetMapper compilation, and focused routing regression tests (11 and 10
 assertions respectively). Cue explicitly links the current js-twig-bundle via a
 Composer path repository; zm already had the local mono link. These local
-checks do not verify deployed versions. Eleven primary apps remain from the
-original list.
+checks do not verify deployed versions.
+
+
+### Session handoff, 2026-10-05
+
+Completed in this session (commit identifiers are local history references, not
+proof of deployment):
+
+| Application | Migration commit | Verification |
+| --- | --- | --- |
+| cue | `7af6b78` | Cache, container, assets, routing regression test |
+| zm | `8b49105` | Cache, container, assets, routing regression test; later rechecked 22 exposed routes |
+| showcase | `964e002` | FOS removal and grid integration; Browse/SearchBuilder followed in `4c2e5f7` |
+| pressia | `6285af6` | Cache, container, 157 exposed routes and JSON import resolution |
+| ssai | `f19dc327` | Cache, container, 104 exposed routes and JSON import resolution |
+
+Pressia and ssai gained the missing grid-bundle dependency required by their
+linked api-grid-bundle. ssai's AssetMapper was upgraded from 8.1.7 to 8.1.8.
+Unrelated Messenger work in pressia and repository/authentication work in ssai
+were deliberately left outside these commits. Both apps have their own
+`docs/browser-routing.md`.
+
+Pressia still has dormant CommonJS/Encore-era FOS consumers under `assets/js/`.
+The active AssetMapper entrypoint does not import them. Reviving those pages
+requires migrating their consumers, not restoring FOS or its dump command.
+
+Showcase Browse proves SearchBuilder CSS and JavaScript loading through the
+basic grid-bundle component. Columns include Composer PHP requirements,
+Composer keywords, and direct runtime package dependency counts. The numeric
+condition “Dependencies > 100” filtered 23 sites to 3 during verification.
+Dependency-name filtering remains future work.
+
+### JSON caching and deployment
+
+The routing module awaits one JSON promise per document/module instance. All
+`path()` calls then use the same in-memory data; grid rows do not trigger route
+requests. Symfony's current JSON import implementation uses a fetch-backed
+promise loader, rather than native JSON import attributes.
+
+On full page navigation the loader runs again, but ordinary `fetch()` uses the
+browser HTTP cache. This does not mean the JSON is downloaded on every page.
+The JSON is compact (no pretty-printing) and its AssetMapper URL contains a
+content hash, so changed route data receives a new URL. In the local Showcase
+check on 2026-10-04, the fingerprinted JSON response had:
+
+```http
+Cache-Control: immutable, max-age=604800, public
+Content-Type: application/json
+```
+
+Production asset compilation writes a static JSON file. Verify that the
+production web server/CDN sends appropriate caching headers for `.json` assets
+as well as `.js`; local headers do not establish deployed behavior. A cold cache
+has a separate JSON request, and each new document parses JSON again. There was
+no observed caching regression requiring a revert.
+
+### Deferred scope
+
+Eight apps from the original audit were not migrated by this session:
+`bench`, `depot`, `ff`, `fw7-demo`, `harvest`, `kpa`, `packages`, and `repo`.
+Other chats may have changed them since that audit; inspect current state first.
+
+The user narrowed future work to active Museado sites. Local evidence suggested
+`ssai`, `zm`, `bts`, and `vt`, but the complete active scope was not confirmed.
+`bts` had an old `fos-routing` importmap entry without a direct PHP dependency;
+its consumers still need checking. `vt` had no FOS configuration in the checked
+manifest/importmap/bundle files. Whether supporting apps such as harvest,
+depot, and mediary belong in this pass remains open. `foundation` was a planning
+repository; deprecated `mus` is explicitly broken/archive-only and was excluded.
+Do not resume a blanket migration or assume these local checks verify live sites.
