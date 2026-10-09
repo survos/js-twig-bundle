@@ -1,6 +1,6 @@
 {
     "name": "survos/js-twig-bundle",
-    "description": "wrap the jstwig library in a Symfony UX component",
+    "description": "Render Twig blocks in the browser from Stimulus via twig-browser, with path(), stimulus_* and ux_icon helpers. Routes load as JSON through AssetMapper, no build step.",
     "keywords": [
         "symfony-ux"
     ],

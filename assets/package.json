@@ -1,6 +1,6 @@
 {
   "name": "@survos/js-twig",
-  "description": "integrate jstwig library with Symfony",
+  "description": "Render Twig blocks in the browser from Stimulus via twig-browser, with path(), stimulus_* and ux_icon helpers. Routes load as JSON through AssetMapper, no build step.",
   "license": "MIT",
   "version": "1.0.5",
   "symfony": {
