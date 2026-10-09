@@ -23,13 +23,16 @@ final class RoutingImportCompiler implements AssetCompilerInterface
 
     public function compile(string $content, MappedAsset $asset, AssetMapperInterface $assetMapper): string
     {
+        $routing = dirname(__DIR__, 2).'/assets/routing.js';
         $imports = [
-            '@survos/js-twig/routing' => dirname(__DIR__, 2).'/assets/routing.js',
-            '@survos/js-twig/routing.js' => dirname(__DIR__, 2).'/assets/routing.js',
-            // Existing consumers can migrate without an application importmap entry.
-            '@survos/js-twig/generated/fos_routes.js' => dirname(__DIR__, 2).'/assets/routing.js',
+            '@survos/js-twig-bundle/routing' => $routing,
+            '@survos/js-twig-bundle/routing.js' => $routing,
+            // Pre-rename specifiers, so consumers keep working without an importmap entry.
+            '@survos/js-twig/routing' => $routing,
+            '@survos/js-twig/routing.js' => $routing,
+            '@survos/js-twig/generated/fos_routes.js' => $routing,
         ];
-        if ('@survos/js-twig/routing.js' === $asset->logicalPath) {
+        if ('@survos/js-twig-bundle/routing.js' === $asset->logicalPath) {
             $imports['./routes.json'] = $this->generatedDir.'/routes.json';
         }
 

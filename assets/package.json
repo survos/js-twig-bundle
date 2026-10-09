@@ -1,12 +1,11 @@
 {
-  "name": "@survos/js-twig",
+  "name": "@survos/js-twig-bundle",
   "description": "Render Twig blocks in the browser from Stimulus via twig-browser, with path(), stimulus_* and ux_icon helpers. Routes load as JSON through AssetMapper, no build step.",
   "license": "MIT",
   "version": "1.0.5",
   "symfony": {
     "controllers": {
       "dexie": {
-        "name": "survos/js-twig/dexie",
         "main": "src/controllers/dexie_controller.js",
         "webpackMode": "eager",
         "fetch": "eager",
@@ -14,7 +13,6 @@
         "autoimport": {}
       },
       "js_twig": {
-        "name": "survos/js-twig/js_twig",
         "main": "src/controllers/js_twig_controller.js",
         "webpackMode": "eager",
         "fetch": "lazy",

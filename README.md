@@ -75,7 +75,7 @@ import { Controller } from '@hotwired/stimulus';
 import { createEngine } from '@tacman1123/twig-browser';
 import { installSymfonyTwigAPI } from '@tacman1123/twig-browser/adapters/symfony';
 import { compileTwigBlocks } from '@tacman1123/twig-browser/src/compat/compileTwigBlocks.js';
-import { path } from '@survos/js-twig/routing';
+import { path } from '@survos/js-twig-bundle/routing';
 
 export default class extends Controller {
   connect() {
@@ -133,7 +133,7 @@ const data = await routesPromise; // JSON imports resolve to a promise
 In your code:
 
 ```js
-import { path } from '@survos/js-twig/routing';
+import { path } from '@survos/js-twig-bundle/routing';
 
 path('product_show', { id: 42 }); // "/product/42"
 ```
@@ -146,9 +146,10 @@ Expose routes with `options: ['expose' => true]` or configure
 `survos_js_twig.routing.routes_to_expose`. Warm the cache before
 `asset-map:compile` in production. Rewarm after changing exposed routes in development.
 
-Migrating from the earlier generated-JS approach? The old
-`@survos/js-twig/generated/fos_routes.js` import still works as an alias, but
-old importmap entries pointing to a generated JS file must be removed. See the
+Older specifiers (`@survos/js-twig/routing` from before the asset namespace
+matched the Composer package name, and `@survos/js-twig/generated/fos_routes.js`
+from the generated-JS approach) still work as compiler aliases. Old importmap
+entries pointing to a generated JS file must be removed. See the
 [migration guide](docs/routing-migration.md).
 
 ## Manifest + runtime debug

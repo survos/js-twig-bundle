@@ -22,7 +22,7 @@ export default class extends Controller {
         this._engine = createEngine();
         installMarkdownFilter(this._engine);
         try {
-          const { path } = await import('@survos/js-twig/routing');
+          const { path } = await import('@survos/js-twig-bundle/routing');
           installSymfonyTwigAPI(this._engine, { pathGenerator: path });
         } catch { /* FOS routing not available */ }
 

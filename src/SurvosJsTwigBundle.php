@@ -20,8 +20,6 @@ use Symfony\Component\DependencyInjection\Reference;
 // Symfony\Component\HttpKernel\Bundle\Bundle <-- Flex auto-registration marker (see Survos\Kit\AbstractSurvosBundle)
 class SurvosJsTwigBundle extends AbstractUxBundle
 {
-    public const ASSET_PACKAGE = 'js-twig';
-
     /** Path (relative to project root) where generated route JSON is written. */
     public const GENERATED_ASSET_DIR = 'var/js_twig_bundle/generated';
 
@@ -123,7 +121,7 @@ class SurvosJsTwigBundle extends AbstractUxBundle
         }
         $builder->prependExtensionConfig('framework', [
             'asset_mapper' => [
-                'paths' => [$generatedDir => '@survos/js-twig/generated'],
+                'paths' => [$generatedDir => '@survos/js-twig-bundle/generated'],
             ],
         ]);
     }

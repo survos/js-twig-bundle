@@ -7,7 +7,7 @@ cache warmer (or link the current mono checkout). AssetMapper must be 7.4.20+
 or 8.1.8+. Do not assume an older js-twig-bundle release has this behavior.
 
 ```js
-import { path, generate } from '@survos/js-twig/routing';
+import { path, generate } from '@survos/js-twig-bundle/routing';
 const url = path('topic_tree_api', { selectedId: row.code });
 ```
 
@@ -22,9 +22,10 @@ Server-rendered Twig `path()` is unchanged. Browser Twig requires the Symfony
 adapter with this runtime's `path` supplied as its pathGenerator; the Survos
 API Grid and tree controllers already wire that adapter.
 
-The old JavaScript specifier `@survos/js-twig/generated/fos_routes.js` remains a
-compiler compatibility alias. It is not a generated file anymore. Existing
-imports can keep working, but new code must use `@survos/js-twig/routing`.
+The old JavaScript specifiers `@survos/js-twig/generated/fos_routes.js` and
+`@survos/js-twig/routing` remain compiler compatibility aliases. Neither is a
+generated file anymore. Existing
+imports can keep working, but new code must use `@survos/js-twig-bundle/routing`.
 The alias does not make FOS's `Routing.setRoutingData`, global `Routing`, npm
 `fos-routing`, or the FOS route endpoint compatible automatically.
 
@@ -40,7 +41,7 @@ The alias does not make FOS's `Routing.setRoutingData`, global `Routing`, npm
    Move any `fos_js_routing.routes_to_expose` configuration into
    `survos_js_twig.routing.routes_to_expose` before deleting the FOS config.
 4. Remove manual importmap entries for `@survos/js-twig/generated/fos_routes.js`,
-   `@survos/js-twig/routing`, and FOS/dump aliases after replacing their consumers.
+   `@survos/js-twig/routing`, `@survos/js-twig-bundle/routing`, and FOS/dump aliases after replacing their consumers.
    In particular, remove entries pointing to the old generated JS on disk.
 5. Remove the FOS bundle registration, `config/routes/fos_js_routing.yaml`,
    FOS package configuration, and `fos:js-routing:dump` Composer/deploy steps.
