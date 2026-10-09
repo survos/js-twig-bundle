@@ -1,5 +1,16 @@
 # Architecture
 
+> **Current flow (2026):** controllers create a twig-browser engine
+> (`createEngine()` + `installSymfonyTwigAPI(engine, { pathGenerator: path })`),
+> call `engine.compileBlock(name, source)` with Twig source fetched from a URL or
+> read from the page, and `engine.renderBlock(name, vars)` per record. `path`
+> comes from `@survos/js-twig-bundle/routing` (see `docs/routing-migration.md`).
+> Reference: `search-bundle/assets/src/controllers/instantsearch_controller.js`.
+>
+> The rest of this document describes the **legacy block-registry path**
+> (`TwigBlocksTrait` JSON + `twig_api.js`/`twig_blocks.js`). It is kept for
+> existing callers; see the README's "Legacy APIs" for its status.
+
 ## Goal
 
 Render Twig-authored block templates in the browser via Stimulus controllers.
@@ -8,7 +19,7 @@ Render Twig-authored block templates in the browser via Stimulus controllers.
 
 1. PHP/Twig extracts block source strings from a caller template.
 2. Those blocks are serialized to JSON and embedded in the page.
-3. JavaScript compiles each source with twig.js.
+3. JavaScript compiles each source with twig-browser (`engine.compileBlock()`).
 4. Controllers render a named block with runtime data.
 
 ## Manifest layer
@@ -27,10 +38,10 @@ This enables runtime discovery and easier debugging of which slots are available
   - Reads a Twig source file (`caller`) and extracts `<twig:block ...>` nodes.
   - Returns a map keyed by block name.
 - `assets/src/lib/twig_blocks.js`
-  - `compileTwigBlocks(registry, scriptTagId)` compiles block source into twig.js templates.
+  - `compileTwigBlocks(registry, scriptTagId)` compiles block source with twig-browser (deprecated shim).
   - `twigRender(registry, blockName, data)` renders one block and returns HTML.
 - `assets/src/lib/twig_api.js`
-  - Extends twig.js runtime with Symfony-like helpers: `path`, `stimulus_*`, `ux_icon`, `render`, `sais_encode`.
+  - Deprecated shim: wires `path` and `ux_icon` into a twig-browser engine (`installTwigAPI()`). New code uses `installSymfonyTwigAPI()`.
 
 ## Data shapes
 
@@ -78,4 +89,4 @@ This is intentional to make migration/debugging visible in UI.
 - `js_twig_controller.js` and `<twig:jsTwig>` are legacy convenience wrappers.
 - `dexie_controller.js` and `<twig:dexie>` add offline/event-driven data workflows.
 
-Use `twig_api + twig_blocks` directly for new reusable integrations (example: api-grid cell templates).
+For new integrations use twig-browser directly (`compileBlock`/`renderBlock`), as `api-grid-bundle`, `search-bundle`, `meili-bundle` and `tree-bundle` do. `<twig:jsTwig>` is broken as shipped (see README).

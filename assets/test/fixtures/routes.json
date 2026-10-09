@@ -1,0 +1,135 @@
+{
+    "base_url": "",
+    "routes": {
+        "home": {
+            "tokens": [
+                [
+                    "text",
+                    "/"
+                ]
+            ],
+            "defaults": [],
+            "requirements": [],
+            "hosttokens": [],
+            "methods": [],
+            "schemes": []
+        },
+        "about": {
+            "tokens": [
+                [
+                    "text",
+                    "/about"
+                ]
+            ],
+            "defaults": [],
+            "requirements": [],
+            "hosttokens": [],
+            "methods": [],
+            "schemes": []
+        },
+        "product_show": {
+            "tokens": [
+                [
+                    "variable",
+                    "/",
+                    "\\d+",
+                    "id"
+                ],
+                [
+                    "text",
+                    "/product"
+                ]
+            ],
+            "defaults": [],
+            "requirements": {
+                "id": "\\d+"
+            },
+            "hosttokens": [],
+            "methods": [],
+            "schemes": []
+        },
+        "blog_list": {
+            "tokens": [
+                [
+                    "variable",
+                    "/",
+                    "[^/]++",
+                    "page"
+                ],
+                [
+                    "text",
+                    "/blog"
+                ]
+            ],
+            "defaults": {
+                "page": 1
+            },
+            "requirements": [],
+            "hosttokens": [],
+            "methods": [],
+            "schemes": []
+        },
+        "post_show": {
+            "tokens": [
+                [
+                    "variable",
+                    "/",
+                    "[^/]++",
+                    "slug"
+                ],
+                [
+                    "text",
+                    "/post"
+                ],
+                [
+                    "variable",
+                    "/",
+                    "[^/]++",
+                    "_locale"
+                ]
+            ],
+            "defaults": {
+                "_locale": "en"
+            },
+            "requirements": [],
+            "hosttokens": [],
+            "methods": [],
+            "schemes": []
+        },
+        "secure": {
+            "tokens": [
+                [
+                    "text",
+                    "/secure"
+                ]
+            ],
+            "defaults": [],
+            "requirements": {
+                "_scheme": "https"
+            },
+            "hosttokens": [],
+            "methods": [],
+            "schemes": []
+        },
+        "secure_schemes": {
+            "tokens": [
+                [
+                    "text",
+                    "/checkout"
+                ]
+            ],
+            "defaults": [],
+            "requirements": [],
+            "hosttokens": [],
+            "methods": [],
+            "schemes": [
+                "https"
+            ]
+        }
+    },
+    "prefix": "",
+    "host": "example.com",
+    "port": "",
+    "scheme": "http",
+    "locale": ""
+}

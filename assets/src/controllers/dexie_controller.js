@@ -39,7 +39,7 @@ export default class extends Controller {
 
     async connect() {
         // Self-target so the template has somewhere to render into
-        this.element.setAttribute('data-survos--js-twig-bundle--dexie-target', 'content');
+        this.element.setAttribute(`data-${this.identifier}-target`, 'content');
 
         console.assert(this.refreshEventValue, '[dexie] missing refreshEvent value');
         console.assert(this.hasAppOutlet,       '[dexie] missing app outlet');

@@ -1,5 +1,10 @@
 # Event-Driven Example (ScanStation pattern)
 
+> **Historical example.** The controller code below uses the deprecated
+> `installTwigAPI()` / `compileTwigBlocks(registry, id)` / `twigRender()` shims.
+> The event contract still applies; for the rendering side, create a twig-browser
+> engine and use `engine.compileBlock()` / `engine.renderBlock()` as in the README.
+
 This pattern comes from a real integration where multiple page regions update from events:
 
 - tree/controller selects a container
@@ -65,5 +70,5 @@ const html = twigRender(this.tpl, 'imageDetail', { img, container, globals });
 
 - Missing event listener wiring (emit exists, but no consumer).
 - Mismatched event payload keys (`id` vs `instanceId`).
-- Using Twig syntax unsupported by twig.js 1.x in client-rendered blocks.
+- Using Twig syntax outside twig-browser's supported subset in client-rendered blocks.
 - Compiling blocks before the JSON script tag exists in DOM.

@@ -61,7 +61,8 @@ export function path(name, params = {}, absolute = false) {
       return;
     }
     if (token[0] === 'variable') {
-      const hasDefault = (route.defaults || {})[token[3]];
+      // Symfony treats a variable as optional only when it has a default (0 and '' included).
+      const hasDefault = Object.prototype.hasOwnProperty.call(route.defaults || {}, token[3]);
       if (!optional || !hasDefault || (params[token[3]] !== undefined && params[token[3]] !== route.defaults[token[3]])) {
         let value;
         if (params[token[3]] !== undefined) {
@@ -69,8 +70,6 @@ export function path(name, params = {}, absolute = false) {
           delete unusedParams[token[3]];
         } else if (hasDefault) {
           value = route.defaults[token[3]];
-        } else if (optional) {
-          return;
         } else {
           throw new Error(`The route "${name}" requires the parameter "${token[3]}".`);
         }
@@ -109,6 +108,8 @@ export function path(name, params = {}, absolute = false) {
 
   if (route.requirements && route.requirements[schemaVar] && _ctx.scheme !== route.requirements[schemaVar]) {
     url = `${route.requirements[schemaVar]}://${host || _ctx.host}${url}`;
+  } else if (route.schemes && route.schemes.length && !route.schemes.includes(_ctx.scheme)) {
+    url = `${route.schemes[0]}://${host || _ctx.host}${url}`;
   } else if (host && _ctx.host !== host) {
     url = `${_ctx.scheme}://${host}${url}`;
   } else if (absolute) {
