@@ -33,12 +33,35 @@ final class RoutesResponse implements \JsonSerializable
         $this->routes = $routes;
     }
 
-    public function setBaseUrl(string $baseUrl): void { $this->baseUrl = $baseUrl; }
-    public function setPrefix(string $prefix): void   { $this->prefix = $prefix; }
-    public function setHost(string $host): void       { $this->host = $host; }
-    public function setPort(string $port): void       { $this->port = $port; }
-    public function setScheme(string $scheme): void   { $this->scheme = $scheme; }
-    public function setLocale(string $locale): void   { $this->locale = $locale; }
+    public function setBaseUrl(string $baseUrl): void
+    {
+        $this->baseUrl = $baseUrl;
+    }
+
+    public function setPrefix(string $prefix): void
+    {
+        $this->prefix = $prefix;
+    }
+
+    public function setHost(string $host): void
+    {
+        $this->host = $host;
+    }
+
+    public function setPort(string $port): void
+    {
+        $this->port = $port;
+    }
+
+    public function setScheme(string $scheme): void
+    {
+        $this->scheme = $scheme;
+    }
+
+    public function setLocale(string $locale): void
+    {
+        $this->locale = $locale;
+    }
 
     /**
      * Build the flat array consumed by the JS generator.
@@ -49,12 +72,12 @@ final class RoutesResponse implements \JsonSerializable
     {
         return [
             'base_url' => $this->baseUrl,
-            'routes'   => $this->buildRoutes(),
-            'prefix'   => $this->prefix,
-            'host'     => $this->host,
-            'port'     => $this->port,
-            'scheme'   => $this->scheme,
-            'locale'   => $this->locale,
+            'routes' => $this->buildRoutes(),
+            'prefix' => $this->prefix,
+            'host' => $this->host,
+            'port' => $this->port,
+            'scheme' => $this->scheme,
+            'locale' => $this->locale,
         ];
     }
 
@@ -84,12 +107,12 @@ final class RoutesResponse implements \JsonSerializable
             }
 
             $exposed[$name] = [
-                'tokens'       => $compiled->getTokens(),
-                'defaults'     => $defaults,
+                'tokens' => $compiled->getTokens(),
+                'defaults' => $defaults,
                 'requirements' => $route->getRequirements(),
-                'hosttokens'   => method_exists($compiled, 'getHostTokens') ? $compiled->getHostTokens() : [],
-                'methods'      => $route->getMethods(),
-                'schemes'      => $route->getSchemes(),
+                'hosttokens' => method_exists($compiled, 'getHostTokens') ? $compiled->getHostTokens() : [],
+                'methods' => $route->getMethods(),
+                'schemes' => $route->getSchemes(),
             ];
         }
 

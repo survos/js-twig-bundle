@@ -1,9 +1,10 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Survos\JsTwigBundle;
 
 interface TwigBlocksInterface
 {
-    function getTwigBlocks(): array;
-
+    public function getTwigBlocks(): array;
 }

@@ -15,7 +15,8 @@ final class FosRoutingCacheWarmer implements CacheWarmerInterface
     public function __construct(
         private readonly ExposedRoutesExtractor $extractor,
         private readonly string $outputDir,
-    ) {}
+    ) {
+    }
 
     public function warmUp(string $cacheDir, ?string $buildDir = null): array
     {
@@ -27,16 +28,16 @@ final class FosRoutingCacheWarmer implements CacheWarmerInterface
 
         $response = new RoutesResponse(
             baseUrl: $this->extractor->getBaseUrl(),
-            prefix:  $this->extractor->getPrefix(),
-            host:    $this->extractor->getHost(),
-            port:    $this->extractor->getPort(),
-            scheme:  $this->extractor->getScheme(),
+            prefix: $this->extractor->getPrefix(),
+            host: $this->extractor->getHost(),
+            port: $this->extractor->getPort(),
+            scheme: $this->extractor->getScheme(),
         );
         $response->setRoutes($this->extractor->getRoutes());
 
         $json = json_encode($response, \JSON_UNESCAPED_SLASHES | \JSON_UNESCAPED_UNICODE | \JSON_THROW_ON_ERROR);
 
-        $outputFile = rtrim($this->outputDir, '/') . '/routes.json';
+        $outputFile = rtrim($this->outputDir, '/').'/routes.json';
         (new Filesystem())->dumpFile($outputFile, $json);
 
         // CacheWarmerInterface returns PHP files eligible for OPcache preloading.
@@ -54,5 +55,4 @@ final class FosRoutingCacheWarmer implements CacheWarmerInterface
     {
         return true;
     }
-
 }

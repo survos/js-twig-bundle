@@ -28,7 +28,8 @@ final class ExposedRoutesExtractor
     public function __construct(
         private readonly RouterInterface $router,
         private readonly array $routesToExpose = [],
-    ) {}
+    ) {
+    }
 
     public function getRoutes(): RouteCollection
     {
@@ -59,7 +60,7 @@ final class ExposedRoutesExtractor
         $ctx = $this->router->getContext();
         $port = $this->getPort();
 
-        return $ctx->getHost() . ($port !== '' ? ':' . $port : '');
+        return $ctx->getHost().('' !== $port ? ':'.$port : '');
     }
 
     public function getPort(): string
@@ -67,11 +68,11 @@ final class ExposedRoutesExtractor
         $ctx = $this->router->getContext();
         $scheme = $this->getScheme();
 
-        if ($scheme === 'http' && $ctx->getHttpPort() !== 80) {
+        if ('http' === $scheme && 80 !== $ctx->getHttpPort()) {
             return (string) $ctx->getHttpPort();
         }
 
-        if ($scheme === 'https' && $ctx->getHttpsPort() !== 443) {
+        if ('https' === $scheme && 443 !== $ctx->getHttpsPort()) {
             return (string) $ctx->getHttpsPort();
         }
 
@@ -90,7 +91,8 @@ final class ExposedRoutesExtractor
         // Explicit option on the route itself
         if ($route->hasOption('expose')) {
             $v = $route->getOption('expose');
-            return $v !== false && $v !== 'false';
+
+            return false !== $v && 'false' !== $v;
         }
 
         // Pattern list from config

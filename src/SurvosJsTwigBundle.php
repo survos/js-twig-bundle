@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace Survos\JsTwigBundle;
 
-use Survos\Kit\AbstractUxBundle;
 use Survos\JsTwigBundle\AssetMapper\RoutingImportCompiler;
 use Survos\JsTwigBundle\CacheWarmer\FosRoutingCacheWarmer;
 use Survos\JsTwigBundle\Components\DexieTwigComponent;
@@ -12,11 +11,13 @@ use Survos\JsTwigBundle\Components\JsTwigComponent;
 use Survos\JsTwigBundle\Debug\JsTwigManifestRegistry;
 use Survos\JsTwigBundle\Routing\ExposedRoutesExtractor;
 use Survos\JsTwigBundle\Twig\TwigExtension;
+use Survos\Kit\AbstractUxBundle;
 use Symfony\Component\Config\Definition\Configurator\DefinitionConfigurator;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
 use Symfony\Component\DependencyInjection\ContainerInterface;
 use Symfony\Component\DependencyInjection\Loader\Configurator\ContainerConfigurator;
 use Symfony\Component\DependencyInjection\Reference;
+
 // Symfony\Component\HttpKernel\Bundle\Bundle <-- Flex auto-registration marker (see Survos\Kit\AbstractSurvosBundle)
 class SurvosJsTwigBundle extends AbstractUxBundle
 {
@@ -60,7 +61,7 @@ class SurvosJsTwigBundle extends AbstractUxBundle
 
         // Register the routing cache warmer unconditionally.
         $projectDir = $builder->getParameter('kernel.project_dir');
-        $outputDir  = $projectDir . '/' . self::GENERATED_ASSET_DIR;
+        $outputDir = $projectDir.'/'.self::GENERATED_ASSET_DIR;
 
         $builder->register(RoutingImportCompiler::class)
             ->setArgument('$generatedDir', $outputDir)
@@ -114,8 +115,8 @@ class SurvosJsTwigBundle extends AbstractUxBundle
         parent::prependExtension($container, $builder);
 
         // Register the generated routing directory as an additional AssetMapper path.
-        $projectDir   = (string) $builder->getParameter('kernel.project_dir');
-        $generatedDir = $projectDir . '/' . self::GENERATED_ASSET_DIR;
+        $projectDir = (string) $builder->getParameter('kernel.project_dir');
+        $generatedDir = $projectDir.'/'.self::GENERATED_ASSET_DIR;
         if (!is_dir($generatedDir)) {
             mkdir($generatedDir, 0755, true);
         }

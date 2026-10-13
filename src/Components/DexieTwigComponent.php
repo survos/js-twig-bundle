@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Survos\JsTwigBundle\Components;
 
 use Psr\Log\LoggerInterface;
@@ -10,33 +12,31 @@ use Symfony\UX\TwigComponent\Attribute\AsTwigComponent;
 use Symfony\UX\TwigComponent\Attribute\PreMount;
 use Twig\Environment;
 
-
 #[AsTwigComponent(name: 'dexie', template: '@SurvosJsTwig/components/dexie_twig.html.twig')]
 final class DexieTwigComponent extends AsTwigComponent
 {
     use TwigBlocksTrait;
     public iterable|object|string $store;
-    public iterable|object|null $globals=null;
-    public null|string|int $key=null;
-    public ?string $refreshEvent=null;
-//    public array $dbConfig=[]; // this is passed in!
+    public iterable|object|null $globals = null;
+    public string|int|null $key = null;
+    public ?string $refreshEvent = null;
+    //    public array $dbConfig=[]; // this is passed in!
     public ?string $url = null;
     // public string $caller; // in TwigBlocksTrait
     public bool $initDb = false;
-    //add queries object
-    public iterable|object|null $queries=null;
+    // add queries object
+    public iterable|object|null $queries = null;
 
     public function __construct(
         private Environment $twig,
         private LoggerInterface $logger,
         JsTwigManifestRegistry $jsTwigManifestRegistry,
-        private array $config=[], // this is the config defined in survos_js_twig.yaml
+        private array $config = [], // this is the config defined in survos_js_twig.yaml
     ) {
         $this->jsTwigManifestRegistry = $jsTwigManifestRegistry;
 
         //        ='@survos/grid/api_grid';
     }
-
 
     public function getFilter()
     {
@@ -47,15 +47,15 @@ final class DexieTwigComponent extends AsTwigComponent
     {
         return $this->store;
     }
-    public null|object|array $filter = null;
+    public object|array|null $filter = null;
     public array $order = [];
-
 
     public function getTwigTemplate(): string
     {
-        assert(array_key_exists('twig_template', $this->getTwigBlocks()), "Missing 'twig_template' in " .
+        assert(array_key_exists('twig_template', $this->getTwigBlocks()), "Missing 'twig_template' in ".
           $this->getTwigSource()
         );
+
         return $this->getTwigBlocks()['twig_template']['html'];
     }
 
@@ -66,16 +66,17 @@ final class DexieTwigComponent extends AsTwigComponent
 
     public function getSchema(): array
     {
-//        assert(false);
-        #    db.version(3).stores({
-#savedTable: "id,name,owned",
-#productTable: "++id,price,brand,category"
-#});
+        //        assert(false);
+        //    db.version(3).stores({
+        // savedTable: "id,name,owned",
+        // productTable: "++id,price,brand,category"
+        // });
 
         $schema = [];
         foreach ($this->config['stores'] as $store) {
             $schema[$store['name']] = $store['schema'];
         }
+
         return $schema;
     }
 
@@ -85,26 +86,25 @@ final class DexieTwigComponent extends AsTwigComponent
     }
 
     /**
-     * The API Platform or other urls to pre-populate the database
-     *
-     * @return array
+     * The API Platform or other urls to pre-populate the database.
      */
     public function getTableUrls(): array
     {
         $tableUrls = [];
         foreach ($this->config['stores'] as $store) {
-            if ($store['url']??false) {
+            if ($store['url'] ?? false) {
                 $tableUrls[$store['name']] = $store['url'];
             }
         }
+
         return $tableUrls;
     }
-
 
     public function getDbName()
     {
         return $this->config['db'];
     }
+
     public function getVersion(): int
     {
         return $this->config['version'];
@@ -127,18 +127,18 @@ final class DexieTwigComponent extends AsTwigComponent
                 'refreshEvent' => null,
                 'key' => null,
                 'filter' => [],
-//                'dbConfig' => [],
-                'globals' => (object)[],
-                'queries' => (object)[],
+                //                'dbConfig' => [],
+                'globals' => (object) [],
+                'queries' => (object) [],
                 'store' => null,
                 'initDb' => false,
             ]);
         if (array_key_exists('globals', $data) && is_array($data['globals'])) {
-            $data['globals'] = (object)$data['globals'];
+            $data['globals'] = (object) $data['globals'];
         }
 
         if (array_key_exists('queries', $data) && is_array($data['queries'])) {
-            $data['queries'] = (object)$data['queries'];
+            $data['queries'] = (object) $data['queries'];
         }
 
         $resolver->setRequired([
@@ -148,7 +148,7 @@ final class DexieTwigComponent extends AsTwigComponent
         ]);
         // either store or dbConfig. store is empty for loadData, which loads all the stores defined
         $resolver
-            ->setAllowedTypes('key', ['null', 'string','int'])
+            ->setAllowedTypes('key', ['null', 'string', 'int'])
             ->setAllowedTypes('filter', ['array'])
             ->setAllowedTypes('store', ['array'])
             ->setAllowedTypes('globals', ['object'])
@@ -156,10 +156,7 @@ final class DexieTwigComponent extends AsTwigComponent
         ;
 
         $data = $resolver->resolve($data);
+
         return $data;
     }
-
-
-
-
 }

@@ -39,7 +39,7 @@ final class TwigExtension extends AbstractExtension
         }
 
         $serverRegistry = json_encode($this->registry->all(), JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES);
-        if ($serverRegistry === false) {
+        if (false === $serverRegistry) {
             $serverRegistry = '{}';
         }
 

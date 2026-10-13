@@ -53,6 +53,7 @@ REGEX;
             if (!str_starts_with($relative, '.')) {
                 $relative = './'.$relative;
             }
+
             return $match['prefix'].$match['quote'].$relative.$match['quote'];
         }, $content) ?? throw new \RuntimeException('Unable to resolve routing imports: '.preg_last_error_msg());
     }
