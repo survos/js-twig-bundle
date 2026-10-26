@@ -4,7 +4,7 @@
 > (`createEngine()` + `installSymfonyTwigAPI(engine, { pathGenerator: path })`),
 > call `engine.compileBlock(name, source)` with Twig source fetched from a URL or
 > read from the page, and `engine.renderBlock(name, vars)` per record. `path`
-> comes from `@survos/js-twig-bundle/routing` (see `docs/routing-migration.md`).
+> comes from the app's `router` module (symfony/ux-router).
 > Reference: `search-bundle/assets/src/controllers/instantsearch_controller.js`.
 >
 > The rest of this document describes the **legacy block-registry path**

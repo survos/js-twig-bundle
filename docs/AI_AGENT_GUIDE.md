@@ -13,7 +13,7 @@
 1. Get Twig **source** into the browser: fetch a raw `.html.twig` from a route
    (search-bundle, meili-bundle), or embed `<twig:block>` markup in a
    `<script type="text/twig">` wrapped in `{% verbatim %}`.
-2. In Stimulus `connect()`: `const { path } = await import('@survos/js-twig-bundle/routing')`,
+2. In Stimulus `connect()`: `const { path } = await import('router')`,
    create the engine, install the Symfony adapter, compile once.
 3. Render per record with `engine.renderBlock(name, { hit, ... })`.
 
@@ -25,8 +25,8 @@ Reference implementation: `search-bundle/assets/src/controllers/instantsearch_co
 - Reference Survos bundle controllers in templates with `survos_stimulus('<pkg>-bundle', '<id>')`,
   never a hard-coded `@survos/...` string or `survos--...` identifier. In JS, derive
   attribute names from `this.identifier`.
-- The routing import is `@survos/js-twig-bundle/routing`; it needs no importmap entry.
-  Routes come from `routes.json`, written by `cache:warmup`.
+- The routing import is `router`: the app's `assets/router.js` (symfony/ux-router), mapped in
+  `importmap.php`. Routes come from `var/routes`, dumped by `cache:warmup`.
 - `compileTwigBlocks()` from twig-browser needs literal `<twig:block name="...">` markup;
   it does not accept the `TwigBlocksTrait` JSON map.
 

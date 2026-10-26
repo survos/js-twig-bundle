@@ -4,12 +4,9 @@ declare(strict_types=1);
 
 namespace Survos\JsTwigBundle;
 
-use Survos\JsTwigBundle\AssetMapper\RoutingImportCompiler;
-use Survos\JsTwigBundle\CacheWarmer\FosRoutingCacheWarmer;
 use Survos\JsTwigBundle\Components\DexieTwigComponent;
 use Survos\JsTwigBundle\Components\JsTwigComponent;
 use Survos\JsTwigBundle\Debug\JsTwigManifestRegistry;
-use Survos\JsTwigBundle\Routing\ExposedRoutesExtractor;
 use Survos\JsTwigBundle\Twig\TwigExtension;
 use Survos\Kit\AbstractUxBundle;
 use Symfony\Component\Config\Definition\Configurator\DefinitionConfigurator;
@@ -21,9 +18,6 @@ use Symfony\Component\DependencyInjection\Reference;
 // Symfony\Component\HttpKernel\Bundle\Bundle <-- Flex auto-registration marker (see Survos\Kit\AbstractSurvosBundle)
 class SurvosJsTwigBundle extends AbstractUxBundle
 {
-    /** Path (relative to project root) where generated route JSON is written. */
-    public const GENERATED_ASSET_DIR = 'var/js_twig_bundle/generated';
-
     public function loadExtension(array $config, ContainerConfigurator $container, ContainerBuilder $builder): void
     {
         $builder->register(JsTwigManifestRegistry::class)
@@ -51,28 +45,6 @@ class SurvosJsTwigBundle extends AbstractUxBundle
             ->setArgument('$config', $config)
             ->setArgument('$registry', new Reference(JsTwigManifestRegistry::class))
             ->addTag('twig.extension');
-
-        // Register our own ExposedRoutesExtractor (no third-party deps).
-        $builder->register(ExposedRoutesExtractor::class)
-            ->setAutowired(false)
-            ->setAutoconfigured(false)
-            ->setArgument('$router', new Reference('router'))
-            ->setArgument('$routesToExpose', $config['routing']['routes_to_expose']);
-
-        // Register the routing cache warmer unconditionally.
-        $projectDir = $builder->getParameter('kernel.project_dir');
-        $outputDir = $projectDir.'/'.self::GENERATED_ASSET_DIR;
-
-        $builder->register(RoutingImportCompiler::class)
-            ->setArgument('$generatedDir', $outputDir)
-            ->addTag('asset_mapper.compiler', ['priority' => 100]);
-
-        $builder->register(FosRoutingCacheWarmer::class)
-            ->setAutowired(false)
-            ->setAutoconfigured(true)
-            ->setArgument('$extractor', new Reference(ExposedRoutesExtractor::class))
-            ->setArgument('$outputDir', $outputDir)
-            ->addTag('kernel.cache_warmer');
     }
 
     public function configure(DefinitionConfigurator $definition): void
@@ -83,14 +55,8 @@ class SurvosJsTwigBundle extends AbstractUxBundle
                 ->scalarNode('version')->defaultValue(1)->end()
                 ->scalarNode('db')->defaultValue('db')->end()
                 ->arrayNode('routing')
-                    ->addDefaultsIfNotSet()
-                    ->children()
-                        ->arrayNode('routes_to_expose')
-                            ->info('Route names or regex patterns (e.g. "/^app_/") to expose to the JS path() generator.')
-                            ->scalarPrototype()->end()
-                            ->defaultValue([])
-                        ->end()
-                    ->end()
+                    ->setDeprecated('survos/js-twig-bundle', '2.43', 'The "%node%" option does nothing: browser path() comes from symfony/ux-router. Expose routes with "ux_router.routes" or the route "expose" option, then remove this key.')
+                    ->ignoreExtraKeys()
                 ->end()
                 ->arrayNode('stores')
                     ->arrayPrototype()
@@ -108,22 +74,5 @@ class SurvosJsTwigBundle extends AbstractUxBundle
                     ->end()
                 ->end()
             ->end();
-    }
-
-    public function prependExtension(ContainerConfigurator $container, ContainerBuilder $builder): void
-    {
-        parent::prependExtension($container, $builder);
-
-        // Register the generated routing directory as an additional AssetMapper path.
-        $projectDir = (string) $builder->getParameter('kernel.project_dir');
-        $generatedDir = $projectDir.'/'.self::GENERATED_ASSET_DIR;
-        if (!is_dir($generatedDir)) {
-            mkdir($generatedDir, 0755, true);
-        }
-        $builder->prependExtensionConfig('framework', [
-            'asset_mapper' => [
-                'paths' => [$generatedDir => '@survos/js-twig-bundle/generated'],
-            ],
-        ]);
     }
 }

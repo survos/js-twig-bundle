@@ -1,6 +1,6 @@
 {
   "name": "@survos/js-twig-bundle",
-  "description": "Render Twig blocks in the browser from Stimulus via twig-browser, with path(), stimulus_* and ux_icon helpers. Routes load as JSON through AssetMapper, no build step.",
+  "description": "Render Twig blocks in the browser from Stimulus via twig-browser, with path(), stimulus_* and ux_icon helpers. No build step; path() comes from symfony/ux-router.",
   "license": "MIT",
   "version": "1.0.5",
   "symfony": {

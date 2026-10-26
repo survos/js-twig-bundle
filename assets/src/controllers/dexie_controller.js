@@ -66,9 +66,10 @@ export default class extends Controller {
         installSymfonyTwigAPI(this._engine);
         installMarkdownFilter(this._engine);
         try {
-          const { path } = await import('@survos/js-twig-bundle/routing');
+          // The app's assets/router.js (symfony/ux-router), mapped as 'router' in importmap.php.
+          const { path } = await import('router');
           this._engine.registerFunction('path', path);
-        } catch { /* FOS routing not available */ }
+        } catch { /* ux-router not installed: path() is unavailable */ }
 
         // Pre-compile all named templates
         this._compiled = {};
